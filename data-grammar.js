@@ -16,15 +16,15 @@ window.GRAMMAR = [
     explanation: `The topic marker 은/는 puts a spotlight on something and says "As for THIS thing, let me tell you about it."
 
 **When to use 은/는:**
-• Introducing a topic: 저는 학생이에요 (As for me, I'm a student)
-• Contrast: 사과는 좋아해요. 바나나는 싫어해요. (I like apples. [But] I don't like bananas)
-• Known/old information: When the listener already knows what you're talking about
+• Introducing a topic: 저는 학생이에요 (As for me, I am a student)
+• Contrast: 사과는 좋아해요. 바나나는 싫어해요. (I like apples. [But] I do not like bananas)
+• Known/old information: When the listener already knows what you are talking about
 
 **The Rule:**
 • 은 after consonants: 책은, 선생님은
 • 는 after vowels: 나는, 커피는`,
     examples: [
-      { korean: '저는 학생이에요.', english: "As for me, I'm a student." },
+      { korean: '저는 학생이에요.', english: "As for me, I am a student." },
       { korean: '오늘은 날씨가 좋아요.', english: 'As for today, the weather is good.' },
       { korean: '커피는 맛있어요.', english: 'As for coffee, it\'s delicious.' },
       { korean: 'BTS는 한국 가수예요.', english: 'As for BTS, they\'re Korean singers.' },
@@ -51,7 +51,7 @@ window.GRAMMAR = [
 • 이 after consonants: 책이, 음식이
 • 가 after vowels: 친구가, 커피가`,
     examples: [
-      { korean: '비가 와요.', english: "It's raining. (Rain is coming)" },
+      { korean: '비가 와요.', english: "It is raining. (Rain is coming)" },
       { korean: '친구가 왔어요.', english: 'A friend came. (New info!)' },
       { korean: '뭐가 있어요?', english: 'What is there?' },
       { korean: '누가 했어요?', english: 'Who did it?' },
@@ -66,19 +66,19 @@ window.GRAMMAR = [
     title: 'Copula: 이다 (To Be)',
     shortDesc: 'Connects nouns to say "X is Y"',
     pattern: 'Noun + 이에요 (after consonant) / 예요 (after vowel)',
-    explanation: `이다 means "to be" and attaches directly to nouns. It's how you say "X is Y" in Korean.
+    explanation: `이다 means "to be" and attaches directly to nouns. It is how you say "X is Y" in Korean.
 
 **Polite Present Tense:**
-• After consonant: 이에요 → 학생이에요 (I'm a student)
-• After vowel: 예요 → 의사예요 (I'm a doctor)
+• After consonant: 이에요 → 학생이에요 (I am a student)
+• After vowel: 예요 → 의사예요 (I am a doctor)
 
 **Negative:** 아니에요 (is not)
-• 학생이 아니에요 (I'm not a student)`,
+• 학생이 아니에요 (I am not a student)`,
     examples: [
-      { korean: '학생이에요.', english: "I'm a student." },
-      { korean: '의사예요.', english: "I'm a doctor." },
+      { korean: '학생이에요.', english: "I am a student." },
+      { korean: '의사예요.', english: "I am a doctor." },
       { korean: '이것은 책이에요.', english: 'This is a book.' },
-      { korean: '저는 미국 사람이에요.', english: "I'm American." },
+      { korean: '저는 미국 사람이에요.', english: "I am American." },
     ],
     tips: 'Unlike English, 이다 doesn\'t need a subject - context tells us who "is" what.',
     related: ['g001', 'g002'],
@@ -101,11 +101,11 @@ window.GRAMMAR = [
 • Someone has something: 시간이 있어요 (I have time)
 
 **없다 means:**
-• Something doesn't exist: 문제없어요 (No problem)
-• Someone doesn't have: 돈이 없어요 (I don't have money)`,
+• Something does not exist: 문제없어요 (No problem)
+• Someone does not have: 돈이 없어요 (I do not have money)`,
     examples: [
       { korean: '시간이 있어요.', english: 'I have time.' },
-      { korean: '돈이 없어요.', english: "I don't have money." },
+      { korean: '돈이 없어요.', english: "I do not have money." },
       { korean: '고양이가 있어요.', english: 'There is a cat.' },
       { korean: '와이파이 있어요?', english: 'Is there WiFi?' },
     ],
@@ -120,14 +120,14 @@ window.GRAMMAR = [
     shortDesc: 'Static location & destination',
     pattern: 'Place + 에 + 있다/가다/오다',
     explanation: `에 marks:
-1. **Static location** (where something IS): 집에 있어요 (I'm at home)
-2. **Destination** (where you're GOING): 학교에 가요 (I'm going to school)
-3. **Time**: 3시에 만나요 (Let's meet at 3 o'clock)
+1. **Static location** (where something IS): 집에 있어요 (I am at home)
+2. **Destination** (where you are GOING): 학교에 가요 (I am going to school)
+3. **Time**: 3시에 만나요 (Let us meet at 3 o'clock)
 
 **Note:** 에 is for BEING somewhere or GOING somewhere, not for DOING something somewhere.`,
     examples: [
-      { korean: '집에 있어요.', english: "I'm at home." },
-      { korean: '학교에 가요.', english: "I'm going to school." },
+      { korean: '집에 있어요.', english: "I am at home." },
+      { korean: '학교에 가요.', english: "I am going to school." },
       { korean: '한국에 가고 싶어요.', english: 'I want to go to Korea.' },
       { korean: '몇 시에 만나요?', english: 'What time shall we meet?' },
     ],
@@ -198,7 +198,7 @@ In casual speech, 을/를 is often dropped, but it's important to know!`,
     title: 'Question Words',
     shortDesc: 'How to ask who, what, where, when, why, how',
     pattern: 'Question Word + Sentence Structure',
-    explanation: `Korean question words stay in place - you don't move them to the front like in English.
+    explanation: `Korean question words stay in place - you do not move them to the front like in English.
 
 **Key Question Words:**
 • 뭐 (mwo) - what
@@ -267,7 +267,7 @@ In casual speech, 을/를 is often dropped, but it's important to know!`,
     examples: [
       { korean: '내일 갈 거예요.', english: "I'll go tomorrow." },
       { korean: '뭐 먹을 거예요?', english: 'What will you eat?' },
-      { korean: '한국어 공부할 거예요.', english: "I'm going to study Korean." },
+      { korean: '한국어 공부할 거예요.', english: "I am going to study Korean." },
       { korean: '주말에 쉴 거예요.', english: "I'll rest on the weekend." },
     ],
     tips: 'Use this for plans you\'ve decided on, not just possibilities.',
@@ -310,20 +310,20 @@ Verb stem + 고 싶어요 = want to [verb]
     title: 'Negation: 안 vs 못',
     shortDesc: 'Two ways to say "not" or "can\'t"',
     pattern: '안 + Verb (won\'t) vs 못 + Verb (can\'t)',
-    explanation: `Korean has two main negation words, and they're NOT interchangeable:
+    explanation: `Korean has two main negation words, and they are NOT interchangeable:
 
-**안 (an)** = "don't" / "won't" - CHOICE
+**안 (an)** = "do not" / "will not" - CHOICE
 • You choose not to do something
-• 안 먹어요 = I don't eat (I choose not to)
+• 안 먹어요 = I do not eat (I choose not to)
 
-**못 (mot)** = "can't" - INABILITY
-• You're unable to do something
-• 못 먹어요 = I can't eat (circumstances prevent me)`,
+**못 (mot)** = "cannot" - INABILITY
+• You are unable to do something
+• 못 먹어요 = I cannot eat (circumstances prevent me)`,
     examples: [
-      { korean: '안 먹어요.', english: "I don't eat / won't eat." },
-      { korean: '못 가요.', english: "I can't go." },
-      { korean: '시간이 없어서 못 했어요.', english: "I couldn't do it because I didn't have time." },
-      { korean: '매운 거 안 먹어요.', english: "I don't eat spicy food (by choice)." },
+      { korean: '안 먹어요.', english: "I do not eat / will not eat." },
+      { korean: '못 가요.', english: "I cannot go." },
+      { korean: '시간이 없어서 못 했어요.', english: "I could not do it because I didn't have time." },
+      { korean: '매운 거 안 먹어요.', english: "I do not eat spicy food (by choice)." },
     ],
     tips: 'Ask yourself: Is this a CHOICE (안) or INABILITY (못)?',
     related: ['g011'],
@@ -345,12 +345,12 @@ Verb stem + 고 싶어요 = want to [verb]
 • Vowel stem → ㄹ 수 있다: 가다 → 갈 수 있어요
 • Consonant stem → 을 수 있다: 먹다 → 먹을 수 있어요
 
-**Negative:** -ㄹ/을 수 없다 = can't / unable to`,
+**Negative:** -ㄹ/을 수 없다 = cannot / unable to`,
     examples: [
       { korean: '한국어 할 수 있어요.', english: 'I can speak Korean.' },
       { korean: '운전할 수 있어요?', english: 'Can you drive?' },
       { korean: '매운 거 먹을 수 있어요.', english: 'I can eat spicy food.' },
-      { korean: '내일 갈 수 없어요.', english: "I can't go tomorrow." },
+      { korean: '내일 갈 수 없어요.', english: "I cannot go tomorrow." },
     ],
     tips: 'For learned skills, you can also use -ㄹ/을 줄 알다.',
     related: ['g012'],
@@ -377,7 +377,7 @@ Verb stem + 고 싶어요 = want to [verb]
     examples: [
       { korean: '한국에 가 봤어요?', english: 'Have you been to Korea?' },
       { korean: '이거 먹어 봤어요?', english: 'Have you tried this?' },
-      { korean: '처음 먹어 봐요.', english: "I'm trying it for the first time." },
+      { korean: '처음 먹어 봐요.', english: "I am trying it for the first time." },
       { korean: '스카이다이빙 해 봤어요.', english: "I've tried skydiving." },
     ],
     tips: 'Perfect for asking "Have you ever...?" questions!',
@@ -433,7 +433,7 @@ Verb stem + 고 싶어요 = want to [verb]
       { korean: '시간이 있으면 가요.', english: "If I have time, I'll go." },
       { korean: '비가 오면 집에 있어요.', english: "If it rains, I'll stay home." },
       { korean: '한국에 가면 뭐 하고 싶어요?', english: 'If you go to Korea, what do you want to do?' },
-      { korean: '모르면 물어보세요.', english: "If you don't know, please ask." },
+      { korean: '모르면 물어보세요.', english: "If you do not know, please ask." },
     ],
     tips: 'Works for both hypothetical "if" and expected "when."',
     related: ['g017'],
@@ -487,7 +487,7 @@ A보다 B가 더 [adjective] = B is more [adj] than A
 • CAN use with commands/suggestions
 • 배가 아프니까 병원에 가세요 (Since your stomach hurts, go to the hospital)`,
     examples: [
-      { korean: '바빠서 못 갔어요.', english: "I was busy so I couldn't go." },
+      { korean: '바빠서 못 갔어요.', english: "I was busy so I could not go." },
       { korean: '피곤해서 일찍 잤어요.', english: 'I was tired so I slept early.' },
       { korean: '시간이 없으니까 빨리 하세요.', english: "Since there's no time, do it quickly." },
       { korean: '맛있으니까 더 드세요.', english: "Since it's delicious, have some more." },
@@ -510,7 +510,7 @@ A보다 B가 더 [adjective] = B is more [adj] than A
 
 **When to use:**
 • Talking about/to elders, bosses, strangers
-• Showing respect for the person you're discussing
+• Showing respect for the person you are discussing
 
 **Forms:**
 • Present: -세요 / -시어요
