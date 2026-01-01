@@ -386,50 +386,47 @@ function App() {
   };
 
   const getDialogueConversations = () => {
-    // Group dialogues into conversations (consecutive lines at same level)
+    // Group dialogues into conversations by level
     const dialogues = getDialogues();
-    const conversations = [];
-    let currentConvo = [];
-    let currentLevel = null;
-
-    dialogues.forEach((line, i) => {
-      if (currentLevel === null || line.level === currentLevel) {
-        currentConvo.push(line);
-        currentLevel = line.level;
-      } else {
-        if (currentConvo.length >= 2) {
-          conversations.push([...currentConvo]);
-        }
-        currentConvo = [line];
-        currentLevel = line.level;
-      }
-    });
     
-    if (currentConvo.length >= 2) {
-      conversations.push(currentConvo);
-    }
+    // Group by level
+    const byLevel = {};
+    dialogues.forEach(line => {
+      if (!byLevel[line.level]) {
+        byLevel[line.level] = [];
+      }
+      byLevel[line.level].push(line);
+    });
 
-    return conversations.filter(c => c.length >= 4); // Only return conversations with at least 4 lines
+    // Convert to array of conversations, only include those with at least 4 lines
+    const conversations = Object.values(byLevel).filter(convo => convo.length >= 4);
+    
+    console.log('Found conversations:', conversations.length, 'at levels:', Object.keys(byLevel));
+    return conversations;
   };
 
   const startDialogue = (role = 'B') => {
     console.log('Starting dialogue practice...');
     const conversations = getDialogueConversations();
+    console.log('Total conversations:', conversations.length);
     
     if (conversations.length === 0) {
-      alert('No dialogues available!');
+      alert('No dialogues available! Check console for details.');
       return;
     }
 
     // Filter by max level
     const filtered = conversations.filter(c => c[0].level <= settings.maxLevel);
+    console.log('Filtered by maxLevel:', settings.maxLevel, '→', filtered.length, 'conversations');
+    
     if (filtered.length === 0) {
-      alert('No dialogues at your current level!');
+      alert('No dialogues at your current level! Try increasing your max level in Settings.');
       return;
     }
 
     // Pick random conversation
     const randomConvo = filtered[Math.floor(Math.random() * filtered.length)];
+    console.log('Selected conversation at level', randomConvo[0].level, 'with', randomConvo.length, 'lines');
     
     setDialogue(randomConvo);
     setDialogueIndex(0);
