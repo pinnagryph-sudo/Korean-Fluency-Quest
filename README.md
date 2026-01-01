@@ -1,147 +1,106 @@
-# Korean Fluency Quest 🇰🇷
+# Korean Fluency Quest v3.0 🇰🇷
 
-A gamified Korean learning app with flashcards, quizzes, dialogue practice, spaced repetition, and listening exercises. Built as a Progressive Web App (PWA) for offline use.
+A gamified Korean learning app with comprehensive features for vocabulary, grammar, dialogue practice, and more. Built as a Progressive Web App (PWA) for offline use.
 
-## ✨ What's New in v2.4
+## ✨ What's New in v3.0
 
-- **413 vocabulary words** - All 40 levels now have content!
-- **Daily Streak Tracking** - Keep motivated with 🔥 streak animations
-- **Dialogue Practice** - Practice real conversations as either speaker
-- **Review Mistakes** - Automatically track and review words you miss
-- **Statistics Dashboard** - See all your progress in one place
-- **Visual Polish** - Smoother animations, better card flips, improved UI
+### 🎨 Theme System
+- **Dark/Light Theme Toggle** - Switch between themes with one tap
+- Smooth transitions between themes
+- Theme preference saved automatically
 
-## Features
+### 🏆 Achievements System
+- **17 unlockable badges** to earn
+- Achievement popup animations when unlocked
+- Tracks streaks, XP milestones, quiz completions
+- Special achievements: Night Owl, Early Bird, Perfectionist
 
-### 🃏 Flashcard Mode
-- **413 vocabulary words** from all 40 levels
-- Spaced Repetition System (SRS) for optimal learning
-- Audio pronunciation using Web Speech API
-- Mastery tracking with visual indicators
+### 📚 Extended Dialogues
+- **106 dialogue lines** covering levels 3-40
+- More conversation topics: work, health, housing, travel, internet slang
+- Native-speaker style expressions
 
-### ❓ Quiz Mode
-- Multiple choice vocabulary quizzes
-- 10 questions per session
-- Immediate feedback
-- Wrong answers tracked for review
+### 🆕 New Practice Modes
+- **Audio Quiz** - Listen to Korean, pick the meaning
+- **Typing Practice** - See romanization, type Hangul
+- Both modes track progress and award XP
 
-### ✍️ Sentence Builder
-- **114 practice sentences** + **153 dialogue lines**
-- Type Korean translations from English prompts
-- Grammar hints and difficulty levels
+### ⭐ Favorites System
+- Star any word to save it
+- Quick access from home screen
+- Review your saved words anytime
 
-### 👂 Listening Practice
-- Audio pronunciation challenges
-- Slow and normal speed options
-- Type what you hear exercises
+### 💾 Data Management
+- **Export Progress** - Download your stats as JSON
+- **Import Progress** - Restore from backup
+- Never lose your streak again!
 
-### 💬 Dialogue Practice (NEW!)
-- Practice real conversations
-- Play as either Person A or Person B
-- Natural conversation flow
-- Audio for all lines
+### 🎓 Onboarding Tutorial
+- Welcome screen for new users
+- Feature overview with icons
+- Gets new learners started quickly
 
-### 📖 Grammar Reference
-- **21 comprehensive grammar points**
-- Detailed explanations with examples
-- Audio playback for all example sentences
-- Related grammar linking
-- Pro tips and usage notes
+## All Features
 
-### 🔄 Review Mistakes (NEW!)
-- Automatically tracks words you miss
-- Review problem words anytime
-- Clear words once you know them
+### Practice Modes
+| Mode | Description | XP |
+|------|-------------|-----|
+| 🃏 Flashcards | Review vocabulary with SRS | +5 per card |
+| ❓ Text Quiz | Multiple choice vocabulary | +10 per correct |
+| 🔊 Audio Quiz | Listen and choose meaning | +10 per correct |
+| ✍️ Sentence Builder | Type Korean translations | +15 per sentence |
+| 👂 Listening | Type what you hear | +12 per correct |
+| 💬 Dialogue | Practice conversations | +8 per line |
+| ⌨️ Typing Practice | Romanization → Hangul | +10 per word |
 
-### 🏆 Gamification
-- XP points for all activities
-- 40 levels based on the Korean Fluency Quest course
-- 🔥 Daily streak tracking with animations
-- Statistics dashboard
+### Gamification
+- 🔥 Daily Streaks - Keep practicing to maintain your streak
+- ⚡ XP System - Earn points for all activities
+- 🏆 17 Achievements - Unlock badges for milestones
+- 📊 Statistics Dashboard - Track all your progress
 
-## File Structure (Flat - GitHub Web Upload Compatible)
-
-```
-korean-fluency-quest/
-├── index.html           # Main HTML entry point
-├── manifest.json        # PWA manifest
-├── sw.js                # Service worker v2.0.0
-├── styles.css           # All styles
-├── app.jsx              # Main React application
-├── data-vocabulary.js   # 267 vocabulary words
-├── data-sentences.js    # 114 sentences + 153 dialogues
-├── data-levels.js       # 40 levels & 30 achievements
-├── data-grammar.js      # 21 grammar reference points
-├── utils-helpers.js     # Storage & utility functions
-├── utils-srs.js         # Spaced Repetition System
-├── utils-audio.js       # Text-to-Speech (Web Speech API)
-├── icon-72.png          # PWA icons (all sizes)
-├── icon-96.png
-├── icon-128.png
-├── icon-144.png
-├── icon-152.png
-├── icon-192.png
-├── icon-384.png
-├── icon-512.png
-├── icon.svg
-└── README.md
-```
-
-## Editing Guide
-
-| Want to change... | Edit this file |
-|-------------------|----------------|
-| Vocabulary words | `data-vocabulary.js` |
-| Practice sentences | `data-sentences.js` |
-| Grammar explanations | `data-grammar.js` |
-| Levels & achievements | `data-levels.js` |
-| SRS algorithm | `utils-srs.js` |
-| Audio settings | `utils-audio.js` |
-| App UI & logic | `app.jsx` |
-| Colors & styling | `styles.css` |
-
-### To add vocabulary:
-Edit `data-vocabulary.js`:
-```javascript
-{ id: 'v999', korean: '새단어', romanization: 'saedaneo', english: 'new word', level: 1, audio: true }
-```
-
-### To add grammar points:
-Edit `data-grammar.js`:
-```javascript
-{
-  id: 'g999', level: 5, title: 'New Pattern', shortDesc: 'Brief description',
-  pattern: 'Pattern', explanation: 'Full explanation...',
-  examples: [{ korean: '예문', english: 'Example' }],
-  tips: 'Pro tip', emoji: '📝'
-}
-```
+### Content
+- **413 vocabulary words** across 40 levels
+- **114 practice sentences**
+- **106 dialogue lines** (18+ conversations)
+- **21 grammar points** with examples
+- **40 levels** based on the Korean Fluency Quest course
 
 ## Deployment
 
 ### GitHub Pages
-1. Push all files to your GitHub repository
+1. Upload all files to your GitHub repository
 2. Go to Settings → Pages
 3. Select "Deploy from a branch" → main → root
 4. Your app will be live at `https://username.github.io/repo-name`
 
-### After any changes:
-**Important:** Bump the version in `sw.js`:
+### After Updates
+Bump the version in `sw.js` to force cache refresh:
 ```javascript
-const CACHE_NAME = 'korean-fluency-quest-v2.0.1'; // Change version number
+const CACHE_NAME = 'korean-fluency-quest-v3.0.1';
 ```
 
-## PWA Features
+## Achievements
 
-- **Installable**: Can be installed on desktop and mobile
-- **Offline**: Works without internet after first load
-- **Auto-update**: Prompts to reload when updates are available
-
-## Browser Support
-
-Chrome ✅ | Safari ✅ | Firefox ✅ | Edge ✅
-
-Note: Text-to-Speech quality depends on available Korean voices in the browser/OS.
+| Badge | Name | Requirement |
+|-------|------|-------------|
+| 🎯 | First Steps | Complete first flashcard |
+| 🔥 | Getting Warm | 3 day streak |
+| 🔥🔥 | On Fire | 7 day streak |
+| 🔥🔥🔥 | Unstoppable | 30 day streak |
+| ⚡ | Centurion | Earn 100 XP |
+| ⭐ | Rising Star | Earn 500 XP |
+| 📚 | Scholar | Earn 1000 XP |
+| 🏆 | Master | Earn 5000 XP |
+| ❓ | Quiz Taker | Complete 10 quizzes |
+| 🧠 | Quiz Pro | Complete 50 quizzes |
+| 📖 | Reviewer | Review 100 cards |
+| 💪 | Dedicated | Review 500 cards |
+| 💬 | Conversationalist | Complete 1 dialogue |
+| 🗣️ | Chatterbox | Complete 10 dialogues |
+| 💯 | Perfectionist | Get 100% on a quiz |
+| 🦉 | Night Owl | Practice after midnight |
+| 🐦 | Early Bird | Practice before 7am |
 
 ---
 
