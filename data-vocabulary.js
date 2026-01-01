@@ -272,6 +272,224 @@ window.VOCABULARY = [
   { id: 'v265', korean: '그냥요', romanization: '', english: 'Just because / No reason  (Vague answer)', level: 1, audio: true },
   { id: 'v266', korean: '존나', romanization: '', english: 'Really/very (vulgar)  (Use carefully!)', level: 1, audio: true },
   { id: 'v267', korean: '기념일', romanization: '', english: 'anniversary/special day  (General term)', level: 1, audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 3: Action Verbs & Object Marker
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v268', korean: '먹다', romanization: 'meokda', english: 'to eat', level: 3, example: '밥을 먹어요.', grammar: 'Base form of to eat', audio: true },
+  { id: 'v269', korean: '마시다', romanization: 'masida', english: 'to drink', level: 3, example: '물을 마셔요.', grammar: 'Base form of to drink', audio: true },
+  { id: 'v270', korean: '보다', romanization: 'boda', english: 'to see/watch', level: 3, example: '영화를 봐요.', grammar: 'Irregular verb (ㅗ→ㅘ)', audio: true },
+  { id: 'v271', korean: '듣다', romanization: 'deutda', english: 'to listen/hear', level: 3, example: '음악을 들어요.', grammar: 'ㄷ irregular (ㄷ→ㄹ)', audio: true },
+  { id: 'v272', korean: '읽다', romanization: 'ikda', english: 'to read', level: 3, example: '책을 읽어요.', grammar: 'Regular verb', audio: true },
+  { id: 'v273', korean: '쓰다', romanization: 'sseuda', english: 'to write/use', level: 3, example: '편지를 써요.', grammar: 'ㅡ irregular', audio: true },
+  { id: 'v274', korean: '사다', romanization: 'sada', english: 'to buy', level: 3, example: '옷을 사요.', grammar: 'Regular verb', audio: true },
+  { id: 'v275', korean: '팔다', romanization: 'palda', english: 'to sell', level: 3, example: '물건을 팔아요.', grammar: 'ㄹ verb', audio: true },
+  { id: 'v276', korean: '만들다', romanization: 'mandeulda', english: 'to make', level: 3, example: '음식을 만들어요.', grammar: 'ㄹ verb', audio: true },
+  { id: 'v277', korean: '찾다', romanization: 'chatda', english: 'to find/look for', level: 3, example: '열쇠를 찾아요.', grammar: 'Regular verb', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 7: Expressing Desires
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v278', korean: '싶다', romanization: 'sipda', english: 'to want (auxiliary)', level: 7, example: '가고 싶어요.', grammar: 'Used after -고', audio: true },
+  { id: 'v279', korean: '좋아하다', romanization: 'joahada', english: 'to like', level: 7, example: '한국 음식을 좋아해요.', grammar: '하다 verb', audio: true },
+  { id: 'v280', korean: '싫어하다', romanization: 'sireohada', english: 'to dislike', level: 7, example: '매운 음식을 싫어해요.', grammar: '하다 verb', audio: true },
+  { id: 'v281', korean: '원하다', romanization: 'wonhada', english: 'to want/desire', level: 7, example: '성공을 원해요.', grammar: 'More formal than -고 싶다', audio: true },
+  { id: 'v282', korean: '바라다', romanization: 'barada', english: 'to hope/wish', level: 7, example: '행복을 바라요.', grammar: 'For wishes/hopes', audio: true },
+  { id: 'v283', korean: '필요하다', romanization: 'piryohada', english: 'to need', level: 7, example: '도움이 필요해요.', grammar: 'Used with 이/가', audio: true },
+  { id: 'v284', korean: '관심', romanization: 'gwansim', english: 'interest', level: 7, example: '관심이 있어요.', grammar: 'Used with 있다/없다', audio: true },
+  { id: 'v285', korean: '꿈', romanization: 'kkum', english: 'dream', level: 7, example: '제 꿈은 가수예요.', grammar: 'Also means sleep dream', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 10: Negation
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v286', korean: '안', romanization: 'an', english: 'not (short negation)', level: 10, example: '안 먹어요.', grammar: 'Goes before verb', audio: true },
+  { id: 'v287', korean: '못', romanization: 'mot', english: 'cannot', level: 10, example: '못 가요.', grammar: 'Inability, not choice', audio: true },
+  { id: 'v288', korean: '아니다', romanization: 'anida', english: 'to not be', level: 10, example: '학생이 아니에요.', grammar: 'Negates nouns', audio: true },
+  { id: 'v289', korean: '없다', romanization: 'eopda', english: 'to not exist/have', level: 10, example: '시간이 없어요.', grammar: 'Opposite of 있다', audio: true },
+  { id: 'v290', korean: '모르다', romanization: 'moreuda', english: 'to not know', level: 10, example: '몰라요.', grammar: 'ㄹ irregular', audio: true },
+  { id: 'v291', korean: '절대', romanization: 'jeoldae', english: 'never/absolutely', level: 10, example: '절대 안 해요.', grammar: 'Emphasis for negation', audio: true },
+  { id: 'v292', korean: '전혀', romanization: 'jeonhyeo', english: 'not at all', level: 10, example: '전혀 몰라요.', grammar: 'Strong negation', audio: true },
+  { id: 'v293', korean: '아직', romanization: 'ajik', english: 'not yet', level: 10, example: '아직 안 왔어요.', grammar: 'Used with negatives', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 11: Ability
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v294', korean: '수', romanization: 'su', english: 'ability/way', level: 11, example: '할 수 있어요.', grammar: 'Used in -ㄹ 수 있다', audio: true },
+  { id: 'v295', korean: '잘하다', romanization: 'jalhada', english: 'to be good at', level: 11, example: '노래를 잘해요.', grammar: 'Skill/ability', audio: true },
+  { id: 'v296', korean: '못하다', romanization: 'mothada', english: 'to be bad at', level: 11, example: '요리를 못해요.', grammar: 'Lack of skill', audio: true },
+  { id: 'v297', korean: '가능하다', romanization: 'ganeunghada', english: 'to be possible', level: 11, example: '가능해요?', grammar: 'Formal possibility', audio: true },
+  { id: 'v298', korean: '불가능하다', romanization: 'bulganeunghada', english: 'to be impossible', level: 11, example: '불가능해요.', grammar: 'Formal impossibility', audio: true },
+  { id: 'v299', korean: '쉽다', romanization: 'swipda', english: 'to be easy', level: 11, example: '한국어가 쉬워요.', grammar: 'ㅂ irregular', audio: true },
+  { id: 'v300', korean: '어렵다', romanization: 'eoryeopda', english: 'to be difficult', level: 11, example: '한자가 어려워요.', grammar: 'ㅂ irregular', audio: true },
+  { id: 'v301', korean: '실력', romanization: 'sillyeok', english: 'skill/ability', level: 11, example: '실력이 좋아요.', grammar: 'Noun for skill', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 12: Experience
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v302', korean: '봤다', romanization: 'bwatda', english: 'tried/experienced', level: 12, example: '해 봤어요.', grammar: '-아/어 봤다 pattern', audio: true },
+  { id: 'v303', korean: '경험', romanization: 'gyeongheom', english: 'experience', level: 12, example: '좋은 경험이었어요.', grammar: 'Noun', audio: true },
+  { id: 'v304', korean: '처음', romanization: 'cheoeum', english: 'first time', level: 12, example: '처음 먹어 봤어요.', grammar: 'First experience', audio: true },
+  { id: 'v305', korean: '한 번', romanization: 'han beon', english: 'once/one time', level: 12, example: '한 번 해 봐요.', grammar: 'Try once', audio: true },
+  { id: 'v306', korean: '여러 번', romanization: 'yeoreo beon', english: 'several times', level: 12, example: '여러 번 갔어요.', grammar: 'Multiple times', audio: true },
+  { id: 'v307', korean: '아직', romanization: 'ajik', english: 'yet/still', level: 12, example: '아직 안 해 봤어요.', grammar: 'Not yet tried', audio: true },
+  { id: 'v308', korean: '벌써', romanization: 'beolsseo', english: 'already', level: 12, example: '벌써 다 먹었어요.', grammar: 'Already done', audio: true },
+  { id: 'v309', korean: '예전에', romanization: 'yejeon-e', english: 'in the past/before', level: 12, example: '예전에 해 봤어요.', grammar: 'Past experience', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 13: Obligations
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v310', korean: '해야 하다', romanization: 'haeya hada', english: 'must do', level: 13, example: '공부해야 해요.', grammar: '-아/어야 하다', audio: true },
+  { id: 'v311', korean: '되다', romanization: 'doeda', english: 'must/become', level: 13, example: '가야 돼요.', grammar: '-아/어야 되다 (casual)', audio: true },
+  { id: 'v312', korean: '필수', romanization: 'pilsu', english: 'required/essential', level: 13, example: '필수예요.', grammar: 'Mandatory', audio: true },
+  { id: 'v313', korean: '의무', romanization: 'uimu', english: 'duty/obligation', level: 13, example: '의무가 있어요.', grammar: 'Formal obligation', audio: true },
+  { id: 'v314', korean: '꼭', romanization: 'kkok', english: 'definitely/must', level: 13, example: '꼭 와야 해요.', grammar: 'Emphasis', audio: true },
+  { id: 'v315', korean: '반드시', romanization: 'bandeusi', english: 'certainly/surely', level: 13, example: '반드시 해야 해요.', grammar: 'Formal emphasis', audio: true },
+  { id: 'v316', korean: '안 되다', romanization: 'an doeda', english: 'must not/not allowed', level: 13, example: '여기서 담배 피면 안 돼요.', grammar: 'Prohibition', audio: true },
+  { id: 'v317', korean: '금지', romanization: 'geumji', english: 'prohibited', level: 13, example: '흡연 금지', grammar: 'No smoking sign', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 14: Conditionals
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v318', korean: '면', romanization: 'myeon', english: 'if (conditional)', level: 14, example: '가면 좋겠어요.', grammar: '-(으)면 ending', audio: true },
+  { id: 'v319', korean: '만약', romanization: 'manyak', english: 'if/in case', level: 14, example: '만약 비가 오면...', grammar: 'Hypothetical if', audio: true },
+  { id: 'v320', korean: '혹시', romanization: 'hoksi', english: 'by any chance', level: 14, example: '혹시 시간 있어요?', grammar: 'Polite if/maybe', audio: true },
+  { id: 'v321', korean: '아니면', romanization: 'animyeon', english: 'or/if not', level: 14, example: '커피 아니면 차?', grammar: 'Or/otherwise', audio: true },
+  { id: 'v322', korean: '그러면', romanization: 'geureomyeon', english: 'then/in that case', level: 14, example: '그러면 갈게요.', grammar: 'If so, then', audio: true },
+  { id: 'v323', korean: '때', romanization: 'ttae', english: 'when/time', level: 14, example: '갈 때 전화해요.', grammar: 'When doing', audio: true },
+  { id: 'v324', korean: '경우', romanization: 'gyeongu', english: 'case/situation', level: 14, example: '그런 경우에는...', grammar: 'In case of', audio: true },
+  { id: 'v325', korean: '조건', romanization: 'jogeon', english: 'condition', level: 14, example: '조건이 뭐예요?', grammar: 'Requirements', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 17: Reason Connectors
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v326', korean: '서', romanization: 'seo', english: 'so/because', level: 17, example: '배가 고파서 먹었어요.', grammar: '-아/어서 ending', audio: true },
+  { id: 'v327', korean: '니까', romanization: 'nikka', english: 'because/since', level: 17, example: '바쁘니까 못 가요.', grammar: '-(으)니까 ending', audio: true },
+  { id: 'v328', korean: '때문에', romanization: 'ttaemune', english: 'because of', level: 17, example: '날씨 때문에 못 갔어요.', grammar: 'Noun + 때문에', audio: true },
+  { id: 'v329', korean: '덕분에', romanization: 'deokbune', english: 'thanks to', level: 17, example: '덕분에 성공했어요.', grammar: 'Positive reason', audio: true },
+  { id: 'v330', korean: '탓에', romanization: 'tase', english: 'due to (blame)', level: 17, example: '비 탓에 늦었어요.', grammar: 'Negative reason', audio: true },
+  { id: 'v331', korean: '이유', romanization: 'iyu', english: 'reason', level: 17, example: '이유가 뭐예요?', grammar: 'Noun for reason', audio: true },
+  { id: 'v332', korean: '왜냐하면', romanization: 'waenyahamyeon', english: 'because (explanation)', level: 17, example: '왜냐하면 바빠서요.', grammar: 'Sentence starter', audio: true },
+  { id: 'v333', korean: '그래서', romanization: 'geuraeseo', english: 'so/therefore', level: 17, example: '그래서 갔어요.', grammar: 'Result connector', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 20: Reported Speech
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v334', korean: '다고 하다', romanization: 'dago hada', english: 'said that (statement)', level: 20, example: '간다고 했어요.', grammar: 'Indirect quote', audio: true },
+  { id: 'v335', korean: '냐고 하다', romanization: 'nyago hada', english: 'asked if', level: 20, example: '뭐 먹냐고 했어요.', grammar: 'Indirect question', audio: true },
+  { id: 'v336', korean: '라고 하다', romanization: 'rago hada', english: 'called/named', level: 20, example: '김치라고 해요.', grammar: 'Quoting names', audio: true },
+  { id: 'v337', korean: '대요', romanization: 'daeyo', english: 'I heard that', level: 20, example: '좋대요.', grammar: 'Shortened quote', audio: true },
+  { id: 'v338', korean: '래요', romanization: 'raeyo', english: 'they say to', level: 20, example: '오래요.', grammar: 'Shortened command', audio: true },
+  { id: 'v339', korean: '말하다', romanization: 'malhada', english: 'to say/speak', level: 20, example: '뭐라고 말했어요?', grammar: 'Base saying verb', audio: true },
+  { id: 'v340', korean: '듣다', romanization: 'deutda', english: 'to hear', level: 20, example: '소식 들었어요.', grammar: 'Receiving info', audio: true },
+  { id: 'v341', korean: '소문', romanization: 'somun', english: 'rumor', level: 20, example: '소문 들었어요.', grammar: 'Hearsay', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 21: Honorifics
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v342', korean: '시', romanization: 'si', english: 'honorific marker', level: 21, example: '가세요.', grammar: '-(으)시- infix', audio: true },
+  { id: 'v343', korean: '드시다', romanization: 'deusida', english: 'to eat (honorific)', level: 21, example: '많이 드세요.', grammar: 'Replaces 먹다', audio: true },
+  { id: 'v344', korean: '주무시다', romanization: 'jumusida', english: 'to sleep (honorific)', level: 21, example: '안녕히 주무세요.', grammar: 'Replaces 자다', audio: true },
+  { id: 'v345', korean: '계시다', romanization: 'gyesida', english: 'to be/exist (honorific)', level: 21, example: '어디 계세요?', grammar: 'Replaces 있다', audio: true },
+  { id: 'v346', korean: '말씀하시다', romanization: 'malsseumhasida', english: 'to speak (honorific)', level: 21, example: '말씀하세요.', grammar: 'Replaces 말하다', audio: true },
+  { id: 'v347', korean: '댁', romanization: 'daek', english: 'house (honorific)', level: 21, example: '댁이 어디세요?', grammar: 'Replaces 집', audio: true },
+  { id: 'v348', korean: '성함', romanization: 'seongham', english: 'name (honorific)', level: 21, example: '성함이 어떻게 되세요?', grammar: 'Replaces 이름', audio: true },
+  { id: 'v349', korean: '연세', romanization: 'yeonse', english: 'age (honorific)', level: 21, example: '연세가 어떻게 되세요?', grammar: 'Replaces 나이', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 22: Guessing & Supposing
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v350', korean: '것 같다', romanization: 'geot gatda', english: 'seems like', level: 22, example: '좋은 것 같아요.', grammar: 'Conjecture pattern', audio: true },
+  { id: 'v351', korean: '듯하다', romanization: 'deuthada', english: 'appears to', level: 22, example: '비가 올 듯해요.', grammar: 'Formal conjecture', audio: true },
+  { id: 'v352', korean: '모양이다', romanization: 'moyang-ida', english: 'looks like', level: 22, example: '바쁜 모양이에요.', grammar: 'Based on evidence', audio: true },
+  { id: 'v353', korean: '아마', romanization: 'ama', english: 'probably', level: 22, example: '아마 올 거예요.', grammar: 'Likelihood adverb', audio: true },
+  { id: 'v354', korean: '확실히', romanization: 'hwaksilhi', english: 'certainly', level: 22, example: '확실히 맞아요.', grammar: 'Certainty adverb', audio: true },
+  { id: 'v355', korean: '글쎄요', romanization: 'geulsseyo', english: 'well.../hmm', level: 22, example: '글쎄요, 모르겠어요.', grammar: 'Uncertainty', audio: true },
+  { id: 'v356', korean: '추측', romanization: 'chucheuk', english: 'guess/speculation', level: 22, example: '그냥 추측이에요.', grammar: 'Noun for guess', audio: true },
+  { id: 'v357', korean: '짐작', romanization: 'jimjak', english: 'conjecture', level: 22, example: '짐작이 가요.', grammar: 'I can guess', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 23: Past Regrets & Hypotheticals
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v358', korean: '더라면', romanization: 'deoramyeon', english: 'if had done', level: 23, example: '갔더라면 좋았을 텐데.', grammar: 'Past hypothetical', audio: true },
+  { id: 'v359', korean: '텐데', romanization: 'tende', english: 'would have', level: 23, example: '알았을 텐데.', grammar: 'Regret ending', audio: true },
+  { id: 'v360', korean: '후회', romanization: 'huhoe', english: 'regret', level: 23, example: '후회해요.', grammar: 'Noun/verb', audio: true },
+  { id: 'v361', korean: '아쉽다', romanization: 'aswipda', english: 'to be regrettable', level: 23, example: '아쉬워요.', grammar: 'Feeling of pity', audio: true },
+  { id: 'v362', korean: '그랬으면', romanization: 'geuraesseumyeon', english: 'if only', level: 23, example: '그랬으면 좋겠다.', grammar: 'Wish for past', audio: true },
+  { id: 'v363', korean: '차라리', romanization: 'charari', english: 'rather/instead', level: 23, example: '차라리 안 갈걸.', grammar: 'Preference', audio: true },
+  { id: 'v364', korean: '걸', romanization: 'geol', english: 'should have', level: 23, example: '말할걸.', grammar: 'Regret ending', audio: true },
+  { id: 'v365', korean: '뻔하다', romanization: 'ppeonhada', english: 'almost did', level: 23, example: '넘어질 뻔했어요.', grammar: 'Near miss', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 25: Passive Voice
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v366', korean: '이', romanization: 'i', english: 'passive suffix', level: 25, example: '문이 닫혀요.', grammar: '-이- passive', audio: true },
+  { id: 'v367', korean: '히', romanization: 'hi', english: 'passive suffix', level: 25, example: '책이 읽혀요.', grammar: '-히- passive', audio: true },
+  { id: 'v368', korean: '리', romanization: 'ri', english: 'passive suffix', level: 25, example: '소문이 들려요.', grammar: '-리- passive', audio: true },
+  { id: 'v369', korean: '기', romanization: 'gi', english: 'passive suffix', level: 25, example: '손이 잡혀요.', grammar: '-기- passive', audio: true },
+  { id: 'v370', korean: '되다', romanization: 'doeda', english: 'to become (passive)', level: 25, example: '결정되다.', grammar: 'Passive with 하다', audio: true },
+  { id: 'v371', korean: '받다', romanization: 'batda', english: 'to receive (passive)', level: 25, example: '사랑받다.', grammar: 'Receiving action', audio: true },
+  { id: 'v372', korean: '당하다', romanization: 'danghada', english: 'to suffer/undergo', level: 25, example: '사고를 당했어요.', grammar: 'Negative passive', audio: true },
+  { id: 'v373', korean: '지다', romanization: 'jida', english: 'to become (passive)', level: 25, example: '이루어지다.', grammar: '-어지다 passive', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 27: Concession
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v374', korean: '아도', romanization: 'ado', english: 'even if', level: 27, example: '가도 괜찮아요.', grammar: '-아/어도 ending', audio: true },
+  { id: 'v375', korean: '지만', romanization: 'jiman', english: 'but/however', level: 27, example: '바쁘지만 갈게요.', grammar: '-지만 ending', audio: true },
+  { id: 'v376', korean: '는데도', romanization: 'neundedo', english: 'despite/although', level: 27, example: '알면서도 안 했어요.', grammar: 'Strong contrast', audio: true },
+  { id: 'v377', korean: '그래도', romanization: 'geuraedo', english: 'still/nevertheless', level: 27, example: '그래도 좋아요.', grammar: 'Despite that', audio: true },
+  { id: 'v378', korean: '그럼에도', romanization: 'geureomedo', english: 'nevertheless (formal)', level: 27, example: '그럼에도 불구하고', grammar: 'Formal despite', audio: true },
+  { id: 'v379', korean: '비록', romanization: 'birok', english: 'even though', level: 27, example: '비록 어려워도...', grammar: 'Concessive starter', audio: true },
+  { id: 'v380', korean: '설령', romanization: 'seollyeong', english: 'even if (hypothetical)', level: 27, example: '설령 그래도...', grammar: 'Strong hypothetical', audio: true },
+  { id: 'v381', korean: '물론', romanization: 'mullon', english: 'of course', level: 27, example: '물론이죠.', grammar: 'Acknowledging', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 29: Natural Speech
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v382', korean: '요', romanization: 'yo', english: 'polite ending', level: 29, example: '네, 알았어요.', grammar: 'Standard polite', audio: true },
+  { id: 'v383', korean: '습니다', romanization: 'seumnida', english: 'formal ending', level: 29, example: '감사합니다.', grammar: 'Formal polite', audio: true },
+  { id: 'v384', korean: '야', romanization: 'ya', english: 'casual ending', level: 29, example: '뭐 해?', grammar: 'With friends', audio: true },
+  { id: 'v385', korean: '냐', romanization: 'nya', english: 'casual question', level: 29, example: '밥 먹었냐?', grammar: 'Casual question', audio: true },
+  { id: 'v386', korean: '거든', romanization: 'geodeun', english: 'you see/because', level: 29, example: '바쁘거든요.', grammar: 'Explaining reason', audio: true },
+  { id: 'v387', korean: '잖아', romanization: 'janha', english: 'you know', level: 29, example: '알잖아.', grammar: 'Shared knowledge', audio: true },
+  { id: 'v388', korean: '네요', romanization: 'neyo', english: 'I see/notice', level: 29, example: '예쁘네요!', grammar: 'New realization', audio: true },
+  { id: 'v389', korean: '군요', romanization: 'gunyo', english: 'I see (formal)', level: 29, example: '그렇군요.', grammar: 'Formal realization', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 31: Common Expressions & Idioms
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v390', korean: '눈이 높다', romanization: 'nun-i nopda', english: 'to have high standards', level: 31, example: '눈이 너무 높아요.', grammar: 'Eyes are high', audio: true },
+  { id: 'v391', korean: '발이 넓다', romanization: 'bal-i neolda', english: 'to know many people', level: 31, example: '발이 넓으시네요.', grammar: 'Feet are wide', audio: true },
+  { id: 'v392', korean: '귀가 얇다', romanization: 'gwiga yalda', english: 'easily influenced', level: 31, example: '귀가 얇아요.', grammar: 'Ears are thin', audio: true },
+  { id: 'v393', korean: '손이 크다', romanization: 'son-i keuda', english: 'to be generous', level: 31, example: '손이 크시네요.', grammar: 'Hands are big', audio: true },
+  { id: 'v394', korean: '입이 무겁다', romanization: 'ib-i mugeopda', english: 'to keep secrets well', level: 31, example: '입이 무거워요.', grammar: 'Mouth is heavy', audio: true },
+  { id: 'v395', korean: '배가 아프다', romanization: 'baega apeuda', english: 'to be jealous', level: 31, example: '배 아파요.', grammar: 'Stomach hurts', audio: true },
+  { id: 'v396', korean: '식은 죽 먹기', romanization: 'sigeun juk meokgi', english: 'piece of cake', level: 31, example: '그건 식은 죽 먹기예요.', grammar: 'Eating cold porridge', audio: true },
+  { id: 'v397', korean: '찬물을 끼얹다', romanization: 'chanmureul kkieotda', english: 'to dampen enthusiasm', level: 31, example: '찬물 끼얹지 마.', grammar: 'Pour cold water', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 36: Dating & Romance
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v398', korean: '사귀다', romanization: 'sagwida', english: 'to date/go out', level: 36, example: '사귀고 있어요.', grammar: 'In a relationship', audio: true },
+  { id: 'v399', korean: '고백하다', romanization: 'gobaekhada', english: 'to confess feelings', level: 36, example: '고백했어요.', grammar: 'Declare love', audio: true },
+  { id: 'v400', korean: '짝사랑', romanization: 'jjaksarang', english: 'one-sided love', level: 36, example: '짝사랑이에요.', grammar: 'Unrequited love', audio: true },
+  { id: 'v401', korean: '소개팅', romanization: 'sogaeting', english: 'blind date', level: 36, example: '소개팅 해 봤어요?', grammar: 'Set-up date', audio: true },
+  { id: 'v402', korean: '썸 타다', romanization: 'sseom tada', english: 'to be in talking stage', level: 36, example: '썸 타는 중이에요.', grammar: 'Pre-dating stage', audio: true },
+  { id: 'v403', korean: '밀당', romanization: 'mildang', english: 'push and pull (flirting)', level: 36, example: '밀당하지 마.', grammar: 'Playing hard to get', audio: true },
+  { id: 'v404', korean: '애인', romanization: 'aein', english: 'lover/partner', level: 36, example: '애인 있어요?', grammar: 'Romantic partner', audio: true },
+  { id: 'v405', korean: '헤어지다', romanization: 'heeojida', english: 'to break up', level: 36, example: '헤어졌어요.', grammar: 'End relationship', audio: true },
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEVEL 38: Advanced Grammar Review
+  // ═══════════════════════════════════════════════════════════════
+  { id: 'v406', korean: '는 바람에', romanization: 'neun barame', english: 'because of (negative)', level: 38, example: '늦은 바람에...', grammar: 'Unintended cause', audio: true },
+  { id: 'v407', korean: '는 셈이다', romanization: 'neun semida', english: 'practically/virtually', level: 38, example: '거의 끝난 셈이에요.', grammar: 'Considered as', audio: true },
+  { id: 'v408', korean: '는 척하다', romanization: 'neun cheokhada', english: 'to pretend', level: 38, example: '모르는 척해요.', grammar: 'Fake/pretend', audio: true },
+  { id: 'v409', korean: '기는커녕', romanization: 'gineunkenyeong', english: 'far from/let alone', level: 38, example: '가기는커녕...', grammar: 'Not even close', audio: true },
+  { id: 'v410', korean: '다가', romanization: 'daga', english: 'while/then suddenly', level: 38, example: '가다가 멈췄어요.', grammar: 'Interrupted action', audio: true },
+  { id: 'v411', korean: '고 말다', romanization: 'go malda', english: 'end up doing', level: 38, example: '결국 갔고 말았어요.', grammar: 'Unfortunate result', audio: true },
+  { id: 'v412', korean: '는 한', romanization: 'neun han', english: 'as long as', level: 38, example: '노력하는 한 괜찮아요.', grammar: 'Conditional limit', audio: true },
+  { id: 'v413', korean: '는 대로', romanization: 'neun daero', english: 'as/according to', level: 38, example: '말한 대로 해요.', grammar: 'Following manner', audio: true },
 ];
 
 // Helper functions

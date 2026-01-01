@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// KOREAN FLUENCY QUEST - Main Application (Simplified v2.1)
+// KOREAN FLUENCY QUEST - Main Application (v2.4 - Full Feature Release)
 // ═══════════════════════════════════════════════════════════════
 
 const { useState, useEffect } = React;
@@ -14,6 +14,12 @@ const defaultStats = {
   totalQuizzes: 0,
   totalSentences: 0,
   totalListening: 0,
+  // Streak tracking
+  currentStreak: 0,
+  longestStreak: 0,
+  lastPracticeDate: null,
+  // Wrong answers for review
+  wrongAnswers: [],
 };
 
 const defaultSettings = {
@@ -70,6 +76,14 @@ function App() {
   // Grammar state
   const [selectedGrammar, setSelectedGrammar] = useState(null);
 
+  // Dialogue state
+  const [dialogue, setDialogue] = useState([]);
+  const [dialogueIndex, setDialogueIndex] = useState(0);
+  const [dialogueRole, setDialogueRole] = useState('A'); // Which role user is practicing
+  const [dialogueInput, setDialogueInput] = useState('');
+  const [dialogueFeedback, setDialogueFeedback] = useState(null);
+  const [showTranslation, setShowTranslation] = useState(false);
+
   // Save to localStorage
   useEffect(() => {
     try {
@@ -92,6 +106,90 @@ function App() {
     }
     return a;
   };
+
+  // Get today's date string (YYYY-MM-DD)
+  const getTodayString = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  // Check if date was yesterday
+  const wasYesterday = (dateStr) => {
+    if (!dateStr) return false;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+    return dateStr === yStr;
+  };
+
+  // Update streak when user practices
+  const updateStreak = () => {
+    const today = getTodayString();
+    
+    setStats(prev => {
+      // Already practiced today - no change to streak
+      if (prev.lastPracticeDate === today) {
+        return prev;
+      }
+      
+      let newStreak;
+      if (wasYesterday(prev.lastPracticeDate)) {
+        // Practiced yesterday - continue streak
+        newStreak = prev.currentStreak + 1;
+      } else if (prev.lastPracticeDate === today) {
+        // Same day - keep current
+        newStreak = prev.currentStreak;
+      } else {
+        // Missed days - reset to 1
+        newStreak = 1;
+      }
+      
+      return {
+        ...prev,
+        currentStreak: newStreak,
+        longestStreak: Math.max(prev.longestStreak, newStreak),
+        lastPracticeDate: today,
+      };
+    });
+  };
+
+  // Track wrong answers for review
+  const trackWrongAnswer = (item, type) => {
+    setStats(prev => {
+      const wrongAnswers = [...(prev.wrongAnswers || [])];
+      // Add if not already tracked
+      if (!wrongAnswers.find(w => w.id === item.id)) {
+        wrongAnswers.push({
+          id: item.id,
+          korean: item.korean,
+          english: item.english,
+          type: type,
+          timestamp: Date.now(),
+        });
+        // Keep only last 50 wrong answers
+        if (wrongAnswers.length > 50) {
+          wrongAnswers.shift();
+        }
+      }
+      return { ...prev, wrongAnswers };
+    });
+  };
+
+  // Clear a wrong answer after getting it right
+  const clearWrongAnswer = (itemId) => {
+    setStats(prev => ({
+      ...prev,
+      wrongAnswers: (prev.wrongAnswers || []).filter(w => w.id !== itemId),
+    }));
+  };
+
+  // Check streak status on mount
+  useEffect(() => {
+    const today = getTodayString();
+    if (stats.lastPracticeDate && stats.lastPracticeDate !== today && !wasYesterday(stats.lastPracticeDate)) {
+      // Streak broken - reset (but don't save yet, let them practice today to start new streak)
+    }
+  }, []);
 
   // Play audio
   const playAudio = (text, rate = 1.0) => {
@@ -129,15 +227,21 @@ function App() {
   };
 
   const nextCard = (wasCorrect) => {
+    const card = deck[cardIndex];
+    
     if (wasCorrect) {
       setCorrect(c => c + 1);
       setStats(s => ({ ...s, xp: s.xp + 5, totalReviews: s.totalReviews + 1 }));
+      clearWrongAnswer(card.id);
+    } else {
+      trackWrongAnswer(card, 'flashcard');
     }
     
     if (cardIndex < deck.length - 1) {
       setCardIndex(i => i + 1);
       setIsFlipped(false);
     } else {
+      updateStreak();
       setView('flashcard-results');
     }
   };
@@ -177,11 +281,15 @@ function App() {
 
   const answerQuiz = (answer) => {
     setSelectedAnswer(answer);
-    const isCorrect = answer === quizQuestions[quizIndex].correct;
+    const q = quizQuestions[quizIndex];
+    const isCorrect = answer === q.correct;
     
     if (isCorrect) {
       setQuizScore(s => s + 1);
       setStats(s => ({ ...s, xp: s.xp + 10 }));
+    } else {
+      // Track wrong answer
+      trackWrongAnswer({ id: `quiz-${quizIndex}`, korean: q.korean, english: q.correct }, 'quiz');
     }
 
     setTimeout(() => {
@@ -189,6 +297,7 @@ function App() {
         setQuizIndex(i => i + 1);
         setSelectedAnswer(null);
       } else {
+        updateStreak();
         setStats(s => ({ ...s, totalQuizzes: s.totalQuizzes + 1 }));
         setView('quiz-results');
       }
@@ -223,7 +332,10 @@ function App() {
     
     setFeedback(isCorrect ? 'correct' : 'incorrect');
     if (isCorrect) {
+      updateStreak();
       setStats(s => ({ ...s, xp: s.xp + 15, totalSentences: s.totalSentences + 1 }));
+    } else {
+      trackWrongAnswer(sentence, 'sentence');
     }
   };
 
@@ -255,7 +367,103 @@ function App() {
     
     setListeningFeedback(isCorrect ? 'correct' : 'incorrect');
     if (isCorrect) {
+      updateStreak();
       setStats(s => ({ ...s, xp: s.xp + 12, totalListening: s.totalListening + 1 }));
+      clearWrongAnswer(listeningWord.id);
+    } else {
+      trackWrongAnswer(listeningWord, 'listening');
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // DIALOGUE FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════
+
+  const getDialogues = () => {
+    // Get all dialogue lines (those with speaker property)
+    const sentences = window.SENTENCES || [];
+    return sentences.filter(s => s.speaker);
+  };
+
+  const getDialogueConversations = () => {
+    // Group dialogues into conversations (consecutive lines at same level)
+    const dialogues = getDialogues();
+    const conversations = [];
+    let currentConvo = [];
+    let currentLevel = null;
+
+    dialogues.forEach((line, i) => {
+      if (currentLevel === null || line.level === currentLevel) {
+        currentConvo.push(line);
+        currentLevel = line.level;
+      } else {
+        if (currentConvo.length >= 2) {
+          conversations.push([...currentConvo]);
+        }
+        currentConvo = [line];
+        currentLevel = line.level;
+      }
+    });
+    
+    if (currentConvo.length >= 2) {
+      conversations.push(currentConvo);
+    }
+
+    return conversations.filter(c => c.length >= 4); // Only return conversations with at least 4 lines
+  };
+
+  const startDialogue = (role = 'B') => {
+    console.log('Starting dialogue practice...');
+    const conversations = getDialogueConversations();
+    
+    if (conversations.length === 0) {
+      alert('No dialogues available!');
+      return;
+    }
+
+    // Filter by max level
+    const filtered = conversations.filter(c => c[0].level <= settings.maxLevel);
+    if (filtered.length === 0) {
+      alert('No dialogues at your current level!');
+      return;
+    }
+
+    // Pick random conversation
+    const randomConvo = filtered[Math.floor(Math.random() * filtered.length)];
+    
+    setDialogue(randomConvo);
+    setDialogueIndex(0);
+    setDialogueRole(role);
+    setDialogueInput('');
+    setDialogueFeedback(null);
+    setShowTranslation(false);
+    setView('dialogue');
+  };
+
+  const checkDialogueAnswer = () => {
+    const currentLine = dialogue[dialogueIndex];
+    const normalize = (s) => s.trim().replace(/\s+/g, '').replace(/[.,!?ㅋ]/g, '').toLowerCase();
+    const isCorrect = normalize(dialogueInput) === normalize(currentLine.korean);
+    
+    setDialogueFeedback(isCorrect ? 'correct' : 'incorrect');
+    
+    if (isCorrect) {
+      setStats(s => ({ ...s, xp: s.xp + 8 }));
+    } else {
+      trackWrongAnswer(currentLine, 'dialogue');
+    }
+  };
+
+  const advanceDialogue = () => {
+    if (dialogueIndex < dialogue.length - 1) {
+      setDialogueIndex(i => i + 1);
+      setDialogueInput('');
+      setDialogueFeedback(null);
+      setShowTranslation(false);
+    } else {
+      // Dialogue complete
+      updateStreak();
+      setView('dialogue-results');
     }
   };
 
@@ -277,21 +485,35 @@ function App() {
 
         <div className="stats-bar">
           <div className="stat">
+            <span className="stat-icon">🔥</span>
+            <span className="stat-value">{stats.currentStreak || 0}</span>
+            <span className="stat-label">Day Streak</span>
+          </div>
+          <div className="stat">
             <span className="stat-icon">⚡</span>
-            <span className="stat-value">{stats.xp}</span>
+            <span className="stat-value">{stats.xp || 0}</span>
             <span className="stat-label">XP</span>
           </div>
           <div className="stat">
             <span className="stat-icon">📖</span>
-            <span className="stat-value">{stats.totalReviews}</span>
+            <span className="stat-value">{stats.totalReviews || 0}</span>
             <span className="stat-label">Reviews</span>
           </div>
           <div className="stat">
             <span className="stat-icon">✓</span>
-            <span className="stat-value">{stats.totalQuizzes}</span>
+            <span className="stat-value">{stats.totalQuizzes || 0}</span>
             <span className="stat-label">Quizzes</span>
           </div>
         </div>
+
+        {/* Streak Banner */}
+        {stats.currentStreak >= 3 && (
+          <div className="streak-banner">
+            <span className="streak-fire">🔥</span>
+            <span className="streak-text">{stats.currentStreak} Day Streak!</span>
+            <span className="streak-fire">🔥</span>
+          </div>
+        )}
 
         <nav className="practice-modes">
           <h2 className="section-title">Practice Modes</h2>
@@ -332,6 +554,15 @@ function App() {
             <div className="mode-arrow">→</div>
           </button>
 
+          <button className="mode-card" onClick={() => startDialogue('B')}>
+            <div className="mode-icon">💬</div>
+            <div className="mode-info">
+              <h3>Dialogue Practice</h3>
+              <p>Practice conversations</p>
+            </div>
+            <div className="mode-arrow">→</div>
+          </button>
+
           <button className="mode-card" onClick={() => setView('levels')}>
             <div className="mode-icon">📚</div>
             <div className="mode-info">
@@ -349,12 +580,228 @@ function App() {
             </div>
             <div className="mode-arrow">→</div>
           </button>
+
+          {/* Review Mistakes - only show if there are mistakes */}
+          {(stats.wrongAnswers?.length > 0) && (
+            <button className="mode-card review-mistakes" onClick={() => setView('review-mistakes')}>
+              <div className="mode-icon">🔄</div>
+              <div className="mode-info">
+                <h3>Review Mistakes</h3>
+                <p>{stats.wrongAnswers.length} words to review</p>
+              </div>
+              <div className="mode-arrow">→</div>
+            </button>
+          )}
         </nav>
 
         <div className="quick-actions">
+          <button className="quick-btn" onClick={() => setView('stats')}>
+            📊 Statistics
+          </button>
           <button className="quick-btn" onClick={() => setView('settings')}>
             ⚙️ Settings
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: REVIEW MISTAKES
+  // ═══════════════════════════════════════════════════════════════
+
+  if (view === 'review-mistakes') {
+    const wrongAnswers = stats.wrongAnswers || [];
+    
+    if (wrongAnswers.length === 0) {
+      return (
+        <div className="app">
+          <header className="screen-header">
+            <button className="back-btn" onClick={() => setView('home')}>← Back</button>
+            <h2>Review Mistakes</h2>
+          </header>
+          <div style={{ padding: 40, textAlign: 'center' }}>
+            <div style={{ fontSize: '4rem', marginBottom: 20 }}>🎉</div>
+            <h2>No mistakes to review!</h2>
+            <p style={{ color: 'var(--text-secondary)', marginTop: 10 }}>
+              Keep practicing and check back here for any words you miss.
+            </p>
+            <button className="primary-btn" style={{ marginTop: 24 }} onClick={() => setView('home')}>
+              Back to Home
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="app">
+        <header className="screen-header">
+          <button className="back-btn" onClick={() => setView('home')}>← Back</button>
+          <h2>Review Mistakes ({wrongAnswers.length})</h2>
+        </header>
+
+        <div style={{ padding: 20 }}>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 20, textAlign: 'center' }}>
+            These are words you have missed. Tap to clear when you have learned them.
+          </p>
+          
+          {wrongAnswers.map((item, i) => (
+            <div key={item.id || i} className="mistake-card" style={{
+              background: 'var(--bg-card)',
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 12,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div>
+                <p style={{ fontSize: '1.3rem', marginBottom: 4 }}>{item.korean}</p>
+                <p style={{ color: 'var(--text-secondary)' }}>{item.english}</p>
+                <span style={{ 
+                  fontSize: '0.75rem', 
+                  background: 'var(--bg-elevated)', 
+                  padding: '2px 8px', 
+                  borderRadius: 4,
+                  color: 'var(--text-tertiary)',
+                }}>
+                  {item.type}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button 
+                  className="secondary-btn"
+                  style={{ padding: '8px 12px' }}
+                  onClick={() => playAudio(item.korean)}
+                >
+                  🔊
+                </button>
+                <button 
+                  className="primary-btn"
+                  style={{ padding: '8px 12px' }}
+                  onClick={() => clearWrongAnswer(item.id)}
+                >
+                  ✓ Got it
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button 
+            className="danger-btn" 
+            style={{ width: '100%', marginTop: 20 }}
+            onClick={() => {
+              if (confirm('Clear all mistakes?')) {
+                setStats(s => ({ ...s, wrongAnswers: [] }));
+              }
+            }}
+          >
+            Clear All Mistakes
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: STATISTICS
+  // ═══════════════════════════════════════════════════════════════
+
+  if (view === 'stats') {
+    const today = getTodayString();
+    const practicedToday = stats.lastPracticeDate === today;
+    
+    return (
+      <div className="app">
+        <header className="screen-header">
+          <button className="back-btn" onClick={() => setView('home')}>← Back</button>
+          <h2>Statistics</h2>
+        </header>
+
+        <div style={{ padding: 20 }}>
+          {/* Streak Card */}
+          <div style={{
+            background: 'linear-gradient(135deg, #ff6b9d 0%, #c44569 100%)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 20,
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: 8 }}>🔥</div>
+            <div style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>{stats.currentStreak || 0}</div>
+            <div style={{ opacity: 0.9 }}>Day Streak</div>
+            <div style={{ marginTop: 12, fontSize: '0.9rem', opacity: 0.8 }}>
+              Best: {stats.longestStreak || 0} days
+            </div>
+            {!practicedToday && (
+              <div style={{ 
+                marginTop: 12, 
+                padding: '8px 16px', 
+                background: 'rgba(0,0,0,0.2)', 
+                borderRadius: 8,
+                fontSize: '0.85rem',
+              }}>
+                Practice today to keep your streak! 💪
+              </div>
+            )}
+          </div>
+
+          {/* Stats Grid */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(2, 1fr)', 
+            gap: 12,
+            marginBottom: 20,
+          }}>
+            <div className="stat-card" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>⚡</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.xp || 0}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total XP</div>
+            </div>
+            <div className="stat-card" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>📖</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.totalReviews || 0}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Cards Reviewed</div>
+            </div>
+            <div className="stat-card" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>❓</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.totalQuizzes || 0}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Quizzes Completed</div>
+            </div>
+            <div className="stat-card" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>✍️</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.totalSentences || 0}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Sentences Written</div>
+            </div>
+            <div className="stat-card" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>👂</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.totalListening || 0}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Listening Exercises</div>
+            </div>
+            <div className="stat-card" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>🔄</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.wrongAnswers?.length || 0}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Words to Review</div>
+            </div>
+          </div>
+
+          {/* Vocabulary Progress */}
+          <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16 }}>
+            <h3 style={{ marginBottom: 12 }}>Vocabulary Progress</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Words in app</span>
+              <span>{(window.VOCABULARY || []).length}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Your max level</span>
+              <span>Level {settings.maxLevel}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Words at your level</span>
+              <span>{(window.VOCABULARY || []).filter(v => v.level <= settings.maxLevel).length}</span>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -722,6 +1169,226 @@ function App() {
               </button>
             </div>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: DIALOGUE PRACTICE
+  // ═══════════════════════════════════════════════════════════════
+
+  if (view === 'dialogue') {
+    if (dialogue.length === 0) {
+      return (
+        <div className="app">
+          <p style={{ padding: 20, textAlign: 'center' }}>Loading dialogue...</p>
+        </div>
+      );
+    }
+
+    const currentLine = dialogue[dialogueIndex];
+    const isUserTurn = currentLine.speaker === dialogueRole;
+    const otherRole = dialogueRole === 'A' ? 'B' : 'A';
+
+    return (
+      <div className="app">
+        <header className="screen-header">
+          <button className="back-btn" onClick={() => setView('home')}>← Back</button>
+          <div className="progress-text">Line {dialogueIndex + 1} / {dialogue.length}</div>
+        </header>
+
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: `${((dialogueIndex + 1) / dialogue.length) * 100}%` }}></div>
+        </div>
+
+        <div style={{ padding: 20 }}>
+          {/* Role indicator */}
+          <div style={{ 
+            textAlign: 'center', 
+            marginBottom: 16,
+            padding: '8px 16px',
+            background: 'var(--bg-card)',
+            borderRadius: 8,
+            fontSize: '0.85rem',
+            color: 'var(--text-secondary)',
+          }}>
+            You are practicing as <strong style={{ color: 'var(--accent-primary)' }}>Person {dialogueRole}</strong>
+          </div>
+
+          {/* Conversation history */}
+          <div style={{ marginBottom: 20 }}>
+            {dialogue.slice(0, dialogueIndex + 1).map((line, i) => {
+              const isUser = line.speaker === dialogueRole;
+              const isCurrent = i === dialogueIndex;
+              
+              return (
+                <div 
+                  key={line.id}
+                  style={{
+                    display: 'flex',
+                    flexDirection: isUser ? 'row-reverse' : 'row',
+                    marginBottom: 12,
+                    opacity: isCurrent ? 1 : 0.7,
+                  }}
+                >
+                  <div style={{
+                    maxWidth: '80%',
+                    padding: '12px 16px',
+                    borderRadius: 16,
+                    background: isUser ? 'var(--accent-primary)' : 'var(--bg-card)',
+                    borderBottomRightRadius: isUser ? 4 : 16,
+                    borderBottomLeftRadius: isUser ? 16 : 4,
+                  }}>
+                    <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: 4 }}>
+                      {line.speaker === dialogueRole ? 'You' : `Person ${line.speaker}`}
+                    </div>
+                    {/* Show Korean if not current user turn OR if feedback given */}
+                    {(!isCurrent || !isUser || dialogueFeedback) && (
+                      <p style={{ fontSize: '1.1rem', marginBottom: 4 }}>{line.korean}</p>
+                    )}
+                    {/* Show placeholder if current user turn and no feedback */}
+                    {isCurrent && isUser && !dialogueFeedback && (
+                      <p style={{ fontSize: '1.1rem', marginBottom: 4, opacity: 0.5 }}>???</p>
+                    )}
+                    {/* Show translation toggle */}
+                    {(!isCurrent || !isUser || dialogueFeedback || showTranslation) && (
+                      <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>{line.english}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* User input area - only show on user turns */}
+          {isUserTurn && !dialogueFeedback && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ 
+                background: 'var(--bg-elevated)', 
+                padding: 12, 
+                borderRadius: 8, 
+                marginBottom: 12,
+                textAlign: 'center',
+              }}>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: 8 }}>Your turn! Respond in Korean:</p>
+                <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>"{currentLine.english}"</p>
+              </div>
+              
+              <input
+                type="text"
+                className="sentence-input"
+                value={dialogueInput}
+                onChange={(e) => setDialogueInput(e.target.value)}
+                placeholder="Type your response in Korean..."
+                autoFocus
+              />
+              
+              <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                <button 
+                  className="primary-btn"
+                  style={{ flex: 1 }}
+                  onClick={checkDialogueAnswer}
+                  disabled={!dialogueInput.trim()}
+                >
+                  Check Answer
+                </button>
+                <button 
+                  className="secondary-btn"
+                  onClick={() => setShowTranslation(!showTranslation)}
+                >
+                  💡 Hint
+                </button>
+              </div>
+              
+              {showTranslation && (
+                <div style={{ 
+                  marginTop: 12, 
+                  padding: 12, 
+                  background: 'rgba(255,107,157,0.1)', 
+                  borderRadius: 8,
+                  textAlign: 'center',
+                }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Answer:</p>
+                  <p style={{ fontSize: '1.1rem' }}>{currentLine.korean}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Feedback for user turns */}
+          {isUserTurn && dialogueFeedback && (
+            <div className={`sentence-feedback ${dialogueFeedback}`} style={{ marginBottom: 20 }}>
+              {dialogueFeedback === 'correct' ? (
+                <span>✓ Perfect! 잘했어요!</span>
+              ) : (
+                <div>
+                  <p>The correct response was:</p>
+                  <p className="correct-answer">{currentLine.korean}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Continue button - for partner turns or after feedback */}
+          {(!isUserTurn || dialogueFeedback) && (
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button 
+                className="secondary-btn"
+                onClick={() => playAudio(currentLine.korean)}
+              >
+                🔊 Listen
+              </button>
+              <button 
+                className="primary-btn"
+                style={{ flex: 1 }}
+                onClick={advanceDialogue}
+              >
+                {dialogueIndex < dialogue.length - 1 ? 'Continue →' : 'Finish 🎉'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER: DIALOGUE RESULTS
+  // ═══════════════════════════════════════════════════════════════
+
+  if (view === 'dialogue-results') {
+    return (
+      <div className="app">
+        <div className="results-screen">
+          <div className="results-card">
+            <h2>Dialogue Complete! 🎉</h2>
+            <div style={{ fontSize: '4rem', margin: '20px 0' }}>💬</div>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
+              Great job practicing conversation!
+            </p>
+            <div className="results-stats">
+              <div className="result-stat">
+                <span className="result-value">{dialogue.length}</span>
+                <span className="result-label">Lines Practiced</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-value">+{dialogue.filter(d => d.speaker === dialogueRole).length * 8}</span>
+                <span className="result-label">XP Earned</span>
+              </div>
+            </div>
+            <div className="result-actions">
+              <button className="primary-btn" onClick={() => startDialogue(dialogueRole)}>
+                Practice Again
+              </button>
+              <button className="secondary-btn" onClick={() => startDialogue(dialogueRole === 'A' ? 'B' : 'A')}>
+                Switch Roles
+              </button>
+              <button className="secondary-btn" onClick={() => setView('home')}>
+                Back to Home
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

@@ -1,20 +1,21 @@
 # Korean Fluency Quest 🇰🇷
 
-A gamified Korean learning app with flashcards, quizzes, spaced repetition, listening practice, and comprehensive grammar reference. Built as a Progressive Web App (PWA) for offline use.
+A gamified Korean learning app with flashcards, quizzes, dialogue practice, spaced repetition, and listening exercises. Built as a Progressive Web App (PWA) for offline use.
 
-## ✨ What's New in v2.0
+## ✨ What's New in v2.4
 
-- **Expanded Vocabulary**: 267 words (up from 180+)
-- **More Sentences**: 114 sentences + 153 dialogue lines
-- **Grammar Reference**: 21 comprehensive grammar explanations with examples
-- **PWA Icons**: Full icon set for installation on any device
+- **413 vocabulary words** - All 40 levels now have content!
+- **Daily Streak Tracking** - Keep motivated with 🔥 streak animations
+- **Dialogue Practice** - Practice real conversations as either speaker
+- **Review Mistakes** - Automatically track and review words you miss
+- **Statistics Dashboard** - See all your progress in one place
+- **Visual Polish** - Smoother animations, better card flips, improved UI
 
 ## Features
 
 ### 🃏 Flashcard Mode
-- **267 vocabulary words** from all 40 levels
+- **413 vocabulary words** from all 40 levels
 - Spaced Repetition System (SRS) for optimal learning
-- Four response options: Again, Hard, Good, Easy
 - Audio pronunciation using Web Speech API
 - Mastery tracking with visual indicators
 
@@ -22,7 +23,7 @@ A gamified Korean learning app with flashcards, quizzes, spaced repetition, list
 - Multiple choice vocabulary quizzes
 - 10 questions per session
 - Immediate feedback
-- Speed achievements for fast completion
+- Wrong answers tracked for review
 
 ### ✍️ Sentence Builder
 - **114 practice sentences** + **153 dialogue lines**
@@ -34,18 +35,28 @@ A gamified Korean learning app with flashcards, quizzes, spaced repetition, list
 - Slow and normal speed options
 - Type what you hear exercises
 
-### 📖 Grammar Reference (NEW!)
+### 💬 Dialogue Practice (NEW!)
+- Practice real conversations
+- Play as either Person A or Person B
+- Natural conversation flow
+- Audio for all lines
+
+### 📖 Grammar Reference
 - **21 comprehensive grammar points**
 - Detailed explanations with examples
 - Audio playback for all example sentences
 - Related grammar linking
 - Pro tips and usage notes
 
+### 🔄 Review Mistakes (NEW!)
+- Automatically tracks words you miss
+- Review problem words anytime
+- Clear words once you know them
+
 ### 🏆 Gamification
 - XP points for all activities
 - 40 levels based on the Korean Fluency Quest course
-- 30+ achievements to unlock
-- Daily streak tracking
+- 🔥 Daily streak tracking with animations
 - Statistics dashboard
 
 ## File Structure (Flat - GitHub Web Upload Compatible)
