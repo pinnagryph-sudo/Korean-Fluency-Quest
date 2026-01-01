@@ -380,12 +380,12 @@ function App() {
   // ═══════════════════════════════════════════════════════════════
 
   const getDialogues = () => {
-    // Get all dialogue lines (those with speaker property)
-    const sentences = window.SENTENCES || [];
-    console.log('Total sentences loaded:', sentences.length);
-    const dialogues = sentences.filter(s => s.speaker && s.speaker !== '');
-    console.log('Sentences with speaker property:', dialogues.length);
-    return dialogues;
+    // Get all dialogue lines from DIALOGUES array (those with speaker property)
+    const dialogues = window.DIALOGUES || [];
+    console.log('Total dialogues loaded:', dialogues.length);
+    const filtered = dialogues.filter(s => s.speaker && s.speaker !== '');
+    console.log('Dialogues with speaker property:', filtered.length);
+    return filtered;
   };
 
   const getDialogueConversations = () => {
@@ -393,13 +393,12 @@ function App() {
     const dialogues = getDialogues();
     
     if (dialogues.length === 0) {
-      console.error('No dialogues found! window.SENTENCES may not have loaded correctly.');
-      console.log('window.SENTENCES exists:', !!window.SENTENCES);
-      console.log('window.SENTENCES length:', window.SENTENCES ? window.SENTENCES.length : 0);
-      // Log first few sentences to debug
-      if (window.SENTENCES && window.SENTENCES.length > 0) {
-        console.log('First 3 sentences:', window.SENTENCES.slice(0, 3));
-        console.log('First sentence with "d" id:', window.SENTENCES.find(s => s.id && s.id.startsWith('d')));
+      console.error('No dialogues found! window.DIALOGUES may not have loaded correctly.');
+      console.log('window.DIALOGUES exists:', !!window.DIALOGUES);
+      console.log('window.DIALOGUES length:', window.DIALOGUES ? window.DIALOGUES.length : 0);
+      // Log first few dialogues to debug
+      if (window.DIALOGUES && window.DIALOGUES.length > 0) {
+        console.log('First 3 dialogues:', window.DIALOGUES.slice(0, 3));
       }
       return [];
     }
@@ -428,7 +427,7 @@ function App() {
     
     if (conversations.length === 0) {
       console.error('No conversations found!');
-      alert('No dialogues available! Check browser console (F12) for details. Try clearing cache: Ctrl+Shift+R');
+      alert('No dialogues available! Make sure data-sentences.js is the latest version with dialogues.');
       return;
     }
 
