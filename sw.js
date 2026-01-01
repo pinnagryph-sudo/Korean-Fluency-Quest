@@ -3,7 +3,7 @@
 // Handles offline caching and PWA functionality
 // ═══════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'korean-fluency-quest-v2.4.1';
+const CACHE_NAME = 'korean-fluency-quest-v2.4.2';
 
 // Files to cache for offline use
 const CACHE_FILES = [

@@ -382,12 +382,27 @@ function App() {
   const getDialogues = () => {
     // Get all dialogue lines (those with speaker property)
     const sentences = window.SENTENCES || [];
-    return sentences.filter(s => s.speaker);
+    console.log('Total sentences loaded:', sentences.length);
+    const dialogues = sentences.filter(s => s.speaker && s.speaker !== '');
+    console.log('Sentences with speaker property:', dialogues.length);
+    return dialogues;
   };
 
   const getDialogueConversations = () => {
     // Group dialogues into conversations by level
     const dialogues = getDialogues();
+    
+    if (dialogues.length === 0) {
+      console.error('No dialogues found! window.SENTENCES may not have loaded correctly.');
+      console.log('window.SENTENCES exists:', !!window.SENTENCES);
+      console.log('window.SENTENCES length:', window.SENTENCES ? window.SENTENCES.length : 0);
+      // Log first few sentences to debug
+      if (window.SENTENCES && window.SENTENCES.length > 0) {
+        console.log('First 3 sentences:', window.SENTENCES.slice(0, 3));
+        console.log('First sentence with "d" id:', window.SENTENCES.find(s => s.id && s.id.startsWith('d')));
+      }
+      return [];
+    }
     
     // Group by level
     const byLevel = {};
@@ -401,26 +416,28 @@ function App() {
     // Convert to array of conversations, only include those with at least 4 lines
     const conversations = Object.values(byLevel).filter(convo => convo.length >= 4);
     
-    console.log('Found conversations:', conversations.length, 'at levels:', Object.keys(byLevel));
+    console.log('Dialogue levels found:', Object.keys(byLevel).join(', '));
+    console.log('Conversations with 4+ lines:', conversations.length);
     return conversations;
   };
 
   const startDialogue = (role = 'B') => {
-    console.log('Starting dialogue practice...');
+    console.log('=== Starting dialogue practice ===');
     const conversations = getDialogueConversations();
-    console.log('Total conversations:', conversations.length);
+    console.log('Total conversations available:', conversations.length);
     
     if (conversations.length === 0) {
-      alert('No dialogues available! Check console for details.');
+      console.error('No conversations found!');
+      alert('No dialogues available! Check browser console (F12) for details. Try clearing cache: Ctrl+Shift+R');
       return;
     }
 
     // Filter by max level
     const filtered = conversations.filter(c => c[0].level <= settings.maxLevel);
-    console.log('Filtered by maxLevel:', settings.maxLevel, '→', filtered.length, 'conversations');
+    console.log('After filtering by maxLevel (' + settings.maxLevel + '):', filtered.length, 'conversations');
     
     if (filtered.length === 0) {
-      alert('No dialogues at your current level! Try increasing your max level in Settings.');
+      alert('No dialogues at your current level (' + settings.maxLevel + ')! Try increasing max level in Settings.');
       return;
     }
 
