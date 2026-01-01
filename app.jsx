@@ -1,41 +1,25 @@
 // ═══════════════════════════════════════════════════════════════
-// KOREAN FLUENCY QUEST - Main Application
-// All constants loaded via window.* from separate files
+// KOREAN FLUENCY QUEST - Main Application (Simplified v2.1)
 // ═══════════════════════════════════════════════════════════════
 
-const { useState, useEffect, useCallback, useRef, useMemo } = React;
+const { useState, useEffect } = React;
 
-// ═══════════════════════════════════════════════════════════════
-// USER STATS MANAGEMENT
-// ═══════════════════════════════════════════════════════════════
-
+// Storage keys
 const STATS_KEY = 'kfq_user_stats';
 const SETTINGS_KEY = 'kfq_settings';
 
 const defaultStats = {
   xp: 0,
-  level: 1,
-  streak: 0,
-  bestStreak: 0,
-  dailyStreak: 0,
   totalReviews: 0,
   totalQuizzes: 0,
   totalSentences: 0,
   totalListening: 0,
-  perfectQuizzes: 0,
-  achievements: [],
-  lastPractice: null,
-  practiceHistory: [],
 };
 
 const defaultSettings = {
   showRomanization: true,
-  cardDirection: 'korean-first',
-  maxLevel: 15,
+  maxLevel: 40,
   audioEnabled: true,
-  autoPlayAudio: false,
-  srsEnabled: true,
-  soundEffects: true,
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -43,911 +27,597 @@ const defaultSettings = {
 // ═══════════════════════════════════════════════════════════════
 
 function App() {
-  // ─────────────────────────────────────────────────────────────
-  // STATE
-  // ─────────────────────────────────────────────────────────────
   const [view, setView] = useState('home');
-  const [stats, setStats] = useState(() => window.load(STATS_KEY, defaultStats));
-  const [settings, setSettings] = useState(() => window.load(SETTINGS_KEY, defaultSettings));
-  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STATS_KEY);
+      return stored ? JSON.parse(stored) : defaultStats;
+    } catch (e) {
+      return defaultStats;
+    }
+  });
+  const [settings, setSettings] = useState(() => {
+    try {
+      const stored = localStorage.getItem(SETTINGS_KEY);
+      return stored ? JSON.parse(stored) : defaultSettings;
+    } catch (e) {
+      return defaultSettings;
+    }
+  });
 
   // Flashcard state
-  const [flashcardDeck, setFlashcardDeck] = useState([]);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [deck, setDeck] = useState([]);
+  const [cardIndex, setCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [sessionStreak, setSessionStreak] = useState(0);
-  const [sessionCorrect, setSessionCorrect] = useState(0);
-  const [sessionTotal, setSessionTotal] = useState(0);
+  const [correct, setCorrect] = useState(0);
 
   // Quiz state
   const [quizQuestions, setQuizQuestions] = useState([]);
-  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
-  const [quizAnswers, setQuizAnswers] = useState([]);
+  const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [quizFeedback, setQuizFeedback] = useState(null);
-  const [quizStartTime, setQuizStartTime] = useState(null);
+  const [quizScore, setQuizScore] = useState(0);
 
-  // Sentence builder state
-  const [sentenceExercise, setSentenceExercise] = useState(null);
-  const [userSentenceInput, setUserSentenceInput] = useState('');
-  const [sentenceFeedback, setSentenceFeedback] = useState(null);
+  // Sentence state
+  const [sentence, setSentence] = useState(null);
+  const [userInput, setUserInput] = useState('');
+  const [feedback, setFeedback] = useState(null);
 
-  // Listening mode state
-  const [listeningExercise, setListeningExercise] = useState(null);
+  // Listening state
+  const [listeningWord, setListeningWord] = useState(null);
   const [listeningInput, setListeningInput] = useState('');
   const [listeningFeedback, setListeningFeedback] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
 
-  // Toast notification
-  const [toast, setToast] = useState(null);
-
-  // Grammar reference state
+  // Grammar state
   const [selectedGrammar, setSelectedGrammar] = useState(null);
 
-  // ─────────────────────────────────────────────────────────────
-  // EFFECTS
-  // ─────────────────────────────────────────────────────────────
-
-  // Save stats and settings
+  // Save to localStorage
   useEffect(() => {
-    window.store(STATS_KEY, stats);
+    try {
+      localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+    } catch (e) {}
   }, [stats]);
 
   useEffect(() => {
-    window.store(SETTINGS_KEY, settings);
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (e) {}
   }, [settings]);
 
-  // Initial load
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Check daily streak on load
-  useEffect(() => {
-    const today = window.getDateKey();
-    if (stats.lastPractice) {
-      const daysSince = window.getDaysSince(stats.lastPractice);
-      if (daysSince > 1) {
-        // Reset daily streak if more than 1 day passed
-        setStats(prev => ({ ...prev, dailyStreak: 0 }));
-        // Check for comeback achievement
-        if (daysSince >= 7 && !stats.achievements.includes('comeback_kid')) {
-          awardAchievement('comeback_kid');
-        }
-      }
+  // Helper to shuffle array
+  const shuffle = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
     }
-  }, []);
+    return a;
+  };
 
-  // ─────────────────────────────────────────────────────────────
-  // TOAST HELPER
-  // ─────────────────────────────────────────────────────────────
-
-  const showToast = useCallback((message, type = 'info') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  }, []);
-
-  // ─────────────────────────────────────────────────────────────
-  // XP & ACHIEVEMENT SYSTEM
-  // ─────────────────────────────────────────────────────────────
-
-  const awardXP = useCallback((amount) => {
-    setStats(prev => {
-      const newXP = prev.xp + amount;
-      const newLevel = window.calculateLevelFromXP(newXP);
-      const today = window.getDateKey();
-      const isNewDay = prev.lastPractice !== today;
-      
-      return {
-        ...prev,
-        xp: newXP,
-        level: newLevel,
-        lastPractice: today,
-        dailyStreak: isNewDay ? prev.dailyStreak + 1 : prev.dailyStreak,
-      };
-    });
-  }, []);
-
-  const awardAchievement = useCallback((achievementId) => {
-    const achievement = window.ACHIEVEMENTS.find(a => a.id === achievementId);
-    if (!achievement) return;
-
-    setStats(prev => {
-      if (prev.achievements.includes(achievementId)) return prev;
-      
-      return {
-        ...prev,
-        achievements: [...prev.achievements, achievementId],
-        xp: prev.xp + achievement.xp,
-      };
-    });
-
-    showToast(`🏆 Achievement: ${achievement.name}!`, 'achievement');
-    if (settings.soundEffects && window.SoundFX) {
-      window.SoundFX.achievement();
+  // Play audio
+  const playAudio = (text, rate = 1.0) => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ko-KR';
+      utterance.rate = rate;
+      speechSynthesis.speak(utterance);
     }
-  }, [settings.soundEffects, showToast]);
+  };
 
-  const checkAchievements = useCallback((newStats) => {
-    // Streak achievements
-    if (newStats.streak >= 5) awardAchievement('streak_5');
-    if (newStats.streak >= 10) awardAchievement('streak_10');
-    if (newStats.streak >= 25) awardAchievement('streak_25');
-    if (newStats.streak >= 50) awardAchievement('streak_50');
+  // ═══════════════════════════════════════════════════════════════
+  // FLASHCARD FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════
 
-    // Daily streak achievements
-    if (newStats.dailyStreak >= 3) awardAchievement('daily_3');
-    if (newStats.dailyStreak >= 7) awardAchievement('daily_7');
-    if (newStats.dailyStreak >= 14) awardAchievement('daily_14');
-    if (newStats.dailyStreak >= 30) awardAchievement('daily_30');
-
-    // Quiz achievements
-    if (newStats.totalQuizzes >= 10) awardAchievement('quiz_10');
-    if (newStats.totalQuizzes >= 25) awardAchievement('quiz_25');
-    if (newStats.totalQuizzes >= 50) awardAchievement('quiz_50');
-    if (newStats.perfectQuizzes >= 5) awardAchievement('perfectionist');
-
-    // Sentence achievements
-    if (newStats.totalSentences >= 10) awardAchievement('sentence_10');
-    if (newStats.totalSentences >= 25) awardAchievement('sentence_25');
-    if (newStats.totalSentences >= 50) awardAchievement('sentence_50');
-
-    // Listening achievements
-    if (newStats.totalListening >= 10) awardAchievement('listen_10');
-    if (newStats.totalListening >= 25) awardAchievement('listen_25');
-    if (newStats.totalListening >= 50) awardAchievement('listen_50');
-
-    // Level achievements
-    if (newStats.level >= 5) awardAchievement('level_5');
-    if (newStats.level >= 10) awardAchievement('level_10');
-    if (newStats.level >= 20) awardAchievement('level_20');
-    if (newStats.level >= 30) awardAchievement('level_30');
-    if (newStats.level >= 40) awardAchievement('level_40');
-
-    // Time-based achievements
-    const hour = new Date().getHours();
-    if (hour >= 0 && hour < 5) awardAchievement('night_owl');
-    if (hour >= 4 && hour < 6) awardAchievement('early_bird');
-
-    // SRS mastery achievements
-    if (settings.srsEnabled && window.SRS) {
-      const vocabIds = window.VOCABULARY.map(v => v.id);
-      const srsStats = window.SRS.getStats(vocabIds);
-      if (srsStats.mastered >= 25) awardAchievement('vocab_25');
-      if (srsStats.mastered >= 50) awardAchievement('vocab_50');
-      if (srsStats.mastered >= 100) awardAchievement('vocab_100');
-      if (srsStats.mastered >= 150) awardAchievement('vocab_150');
-    }
-  }, [awardAchievement, settings.srsEnabled]);
-
-  // ─────────────────────────────────────────────────────────────
-  // FLASHCARD MODE
-  // ─────────────────────────────────────────────────────────────
-
-  const startFlashcards = useCallback((filterLevel = null) => {
-    let vocab = window.getVocabUpToLevel(settings.maxLevel);
-    if (filterLevel) {
-      vocab = window.getVocabByLevel(filterLevel);
-    }
-
-    let deck;
-    if (settings.srsEnabled && window.SRS) {
-      // Use SRS to prioritize cards
-      const vocabIds = vocab.map(v => v.id);
-      const priorityIds = window.SRS.getPriorityQueue(vocabIds, 20);
-      deck = priorityIds.map(id => vocab.find(v => v.id === id)).filter(Boolean);
-    } else {
-      // Random shuffle
-      deck = window.shuffleArray(vocab).slice(0, 20);
-    }
-
-    setFlashcardDeck(deck);
-    setCurrentCardIndex(0);
-    setIsFlipped(false);
-    setSessionStreak(0);
-    setSessionCorrect(0);
-    setSessionTotal(0);
-    setView('flashcards');
-
-    // First card achievement
-    if (!stats.achievements.includes('first_card')) {
-      awardAchievement('first_card');
-    }
-  }, [settings.maxLevel, settings.srsEnabled, stats.achievements, awardAchievement]);
-
-  const handleCardResponse = useCallback((quality) => {
-    const card = flashcardDeck[currentCardIndex];
-    const isCorrect = quality >= window.SRS_QUALITY.GOOD;
+  const startFlashcards = () => {
+    console.log('Starting flashcards...');
+    const vocab = window.VOCABULARY || [];
+    console.log('Vocabulary count:', vocab.length);
     
-    // Update SRS if enabled
-    if (settings.srsEnabled && window.SRS) {
-      window.SRS.reviewCard(card.id, quality);
+    if (vocab.length === 0) {
+      alert('No vocabulary loaded!');
+      return;
     }
 
-    // Update session stats
-    const newTotal = sessionTotal + 1;
-    const newStreak = isCorrect ? sessionStreak + 1 : 0;
-    const newCorrect = isCorrect ? sessionCorrect + 1 : sessionCorrect;
+    const filtered = vocab.filter(v => v.level <= settings.maxLevel);
+    const shuffled = shuffle(filtered).slice(0, 20);
+    
+    setDeck(shuffled);
+    setCardIndex(0);
+    setIsFlipped(false);
+    setCorrect(0);
+    setView('flashcards');
+  };
 
-    setSessionTotal(newTotal);
-    setSessionStreak(newStreak);
-    setSessionCorrect(newCorrect);
-
-    // Update global stats
-    setStats(prev => {
-      const newStats = {
-        ...prev,
-        totalReviews: prev.totalReviews + 1,
-        streak: isCorrect ? prev.streak + 1 : 0,
-        bestStreak: Math.max(prev.bestStreak, newStreak),
-      };
-      checkAchievements(newStats);
-      return newStats;
-    });
-
-    // Award XP based on quality
-    const xpMap = { 0: 0, 1: 3, 2: 5, 3: 8 };
-    awardXP(xpMap[quality] || 5);
-
-    // Sound effects
-    if (settings.soundEffects && window.SoundFX) {
-      isCorrect ? window.SoundFX.correct() : window.SoundFX.incorrect();
+  const nextCard = (wasCorrect) => {
+    if (wasCorrect) {
+      setCorrect(c => c + 1);
+      setStats(s => ({ ...s, xp: s.xp + 5, totalReviews: s.totalReviews + 1 }));
     }
-
-    // Next card or results
-    if (currentCardIndex < flashcardDeck.length - 1) {
-      setCurrentCardIndex(prev => prev + 1);
+    
+    if (cardIndex < deck.length - 1) {
+      setCardIndex(i => i + 1);
       setIsFlipped(false);
     } else {
       setView('flashcard-results');
     }
-  }, [flashcardDeck, currentCardIndex, sessionTotal, sessionStreak, sessionCorrect, settings, awardXP, checkAchievements]);
+  };
 
-  const playCardAudio = useCallback(() => {
-    const card = flashcardDeck[currentCardIndex];
-    if (card && window.Audio) {
-      window.Audio.speak(card.korean);
+  // ═══════════════════════════════════════════════════════════════
+  // QUIZ FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════
+
+  const startQuiz = () => {
+    console.log('Starting quiz...');
+    const vocab = window.VOCABULARY || [];
+    
+    if (vocab.length < 4) {
+      alert('Not enough vocabulary for quiz!');
+      return;
     }
-  }, [flashcardDeck, currentCardIndex]);
 
-  // ─────────────────────────────────────────────────────────────
-  // QUIZ MODE
-  // ─────────────────────────────────────────────────────────────
-
-  const startQuiz = useCallback((mode = 'vocab') => {
-    const source = mode === 'sentences' 
-      ? window.getSentencesUpToLevel(settings.maxLevel)
-      : window.getVocabUpToLevel(settings.maxLevel);
-    
-    const questions = window.shuffleArray(source).slice(0, 10);
-    
-    const formatted = questions.map(q => {
-      const wrongAnswers = window.shuffleArray(
-        source.filter(f => f.english !== q.english)
-      ).slice(0, 3).map(f => f.english);
-      
+    const filtered = vocab.filter(v => v.level <= settings.maxLevel);
+    const shuffled = shuffle(filtered);
+    const questions = shuffled.slice(0, 10).map(q => {
+      const wrongAnswers = shuffle(filtered.filter(v => v.id !== q.id))
+        .slice(0, 3)
+        .map(v => v.english);
       return {
-        question: q.korean,
+        korean: q.korean,
         correct: q.english,
-        options: window.shuffleArray([q.english, ...wrongAnswers]),
-        level: q.level,
-        original: q,
+        options: shuffle([q.english, ...wrongAnswers]),
       };
     });
 
-    setQuizQuestions(formatted);
-    setQuizAnswers([]);
-    setCurrentQuizIndex(0);
+    setQuizQuestions(questions);
+    setQuizIndex(0);
+    setQuizScore(0);
     setSelectedAnswer(null);
-    setQuizFeedback(null);
-    setQuizStartTime(Date.now());
     setView('quiz');
+  };
 
-    if (!stats.achievements.includes('first_quiz')) {
-      awardAchievement('first_quiz');
-    }
-  }, [settings.maxLevel, stats.achievements, awardAchievement]);
-
-  const submitQuizAnswer = useCallback((answer) => {
-    const question = quizQuestions[currentQuizIndex];
-    const isCorrect = answer === question.correct;
-    
+  const answerQuiz = (answer) => {
     setSelectedAnswer(answer);
-    setQuizFeedback(isCorrect ? 'correct' : 'incorrect');
-    setQuizAnswers(prev => [...prev, { answer, isCorrect }]);
-
-    // Sound effects
-    if (settings.soundEffects && window.SoundFX) {
-      isCorrect ? window.SoundFX.correct() : window.SoundFX.incorrect();
+    const isCorrect = answer === quizQuestions[quizIndex].correct;
+    
+    if (isCorrect) {
+      setQuizScore(s => s + 1);
+      setStats(s => ({ ...s, xp: s.xp + 10 }));
     }
-
-    // Award XP
-    if (isCorrect) awardXP(10);
-
-    // Update stats
-    setStats(prev => ({
-      ...prev,
-      streak: isCorrect ? prev.streak + 1 : 0,
-      bestStreak: isCorrect ? Math.max(prev.bestStreak, prev.streak + 1) : prev.bestStreak,
-    }));
 
     setTimeout(() => {
-      if (currentQuizIndex < quizQuestions.length - 1) {
-        setCurrentQuizIndex(prev => prev + 1);
+      if (quizIndex < quizQuestions.length - 1) {
+        setQuizIndex(i => i + 1);
         setSelectedAnswer(null);
-        setQuizFeedback(null);
       } else {
-        // Quiz complete
-        const allAnswers = [...quizAnswers, { isCorrect }];
-        const allCorrect = allAnswers.every(a => a.isCorrect);
-        const quizTime = (Date.now() - quizStartTime) / 1000;
-        
-        setStats(prev => {
-          const newStats = {
-            ...prev,
-            totalQuizzes: prev.totalQuizzes + 1,
-            perfectQuizzes: allCorrect ? prev.perfectQuizzes + 1 : prev.perfectQuizzes,
-          };
-          checkAchievements(newStats);
-          return newStats;
-        });
-
-        if (allCorrect) {
-          awardAchievement('quiz_perfect');
-          awardXP(30); // Bonus for perfect
-        }
-
-        // Speed achievement
-        if (quizTime < 30) {
-          awardAchievement('speed_demon');
-        }
-
+        setStats(s => ({ ...s, totalQuizzes: s.totalQuizzes + 1 }));
         setView('quiz-results');
       }
-    }, 1500);
-  }, [quizQuestions, currentQuizIndex, quizAnswers, quizStartTime, settings.soundEffects, awardXP, checkAchievements, awardAchievement]);
+    }, 1000);
+  };
 
-  // ─────────────────────────────────────────────────────────────
-  // SENTENCE BUILDER MODE
-  // ─────────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════
+  // SENTENCE BUILDER FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════
 
-  const startSentenceBuilder = useCallback(() => {
-    const sentences = window.getSentencesUpToLevel(settings.maxLevel);
-    const sentence = window.pickRandom(sentences);
-    setSentenceExercise(sentence);
-    setUserSentenceInput('');
-    setSentenceFeedback(null);
-    setView('sentence-builder');
-
-    if (!stats.achievements.includes('first_sentence')) {
-      awardAchievement('first_sentence');
-    }
-  }, [settings.maxLevel, stats.achievements, awardAchievement]);
-
-  const checkSentence = useCallback(() => {
-    const isCorrect = window.compareKorean(userSentenceInput, sentenceExercise.korean);
-    setSentenceFeedback(isCorrect ? 'correct' : 'incorrect');
-
-    if (settings.soundEffects && window.SoundFX) {
-      isCorrect ? window.SoundFX.correct() : window.SoundFX.incorrect();
+  const startSentence = () => {
+    console.log('Starting sentence builder...');
+    const sentences = window.SENTENCES || [];
+    
+    if (sentences.length === 0) {
+      alert('No sentences loaded!');
+      return;
     }
 
+    const filtered = sentences.filter(s => s.level <= settings.maxLevel);
+    const random = filtered[Math.floor(Math.random() * filtered.length)];
+    
+    setSentence(random);
+    setUserInput('');
+    setFeedback(null);
+    setView('sentence');
+  };
+
+  const checkSentence = () => {
+    const normalize = (s) => s.trim().replace(/\s+/g, '').replace(/[.,!?]/g, '');
+    const isCorrect = normalize(userInput) === normalize(sentence.korean);
+    
+    setFeedback(isCorrect ? 'correct' : 'incorrect');
     if (isCorrect) {
-      awardXP(15);
-      setStats(prev => {
-        const newStats = {
-          ...prev,
-          totalSentences: prev.totalSentences + 1,
-          streak: prev.streak + 1,
-          bestStreak: Math.max(prev.bestStreak, prev.streak + 1),
-        };
-        checkAchievements(newStats);
-        return newStats;
-      });
-    } else {
-      setStats(prev => ({ ...prev, streak: 0 }));
+      setStats(s => ({ ...s, xp: s.xp + 15, totalSentences: s.totalSentences + 1 }));
     }
-  }, [userSentenceInput, sentenceExercise, settings.soundEffects, awardXP, checkAchievements]);
+  };
 
-  // ─────────────────────────────────────────────────────────────
-  // LISTENING MODE
-  // ─────────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════
+  // LISTENING FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════
 
-  const startListening = useCallback(() => {
-    const vocab = window.getVocabUpToLevel(settings.maxLevel);
-    const word = window.pickRandom(vocab);
-    setListeningExercise(word);
+  const startListening = () => {
+    console.log('Starting listening...');
+    const vocab = window.VOCABULARY || [];
+    
+    if (vocab.length === 0) {
+      alert('No vocabulary loaded!');
+      return;
+    }
+
+    const filtered = vocab.filter(v => v.level <= settings.maxLevel);
+    const random = filtered[Math.floor(Math.random() * filtered.length)];
+    
+    setListeningWord(random);
     setListeningInput('');
     setListeningFeedback(null);
     setView('listening');
+  };
 
-    if (!stats.achievements.includes('first_listen')) {
-      awardAchievement('first_listen');
-    }
-  }, [settings.maxLevel, stats.achievements, awardAchievement]);
-
-  const playListeningAudio = useCallback(async (speed = 'normal') => {
-    if (!listeningExercise || !window.Audio) return;
+  const checkListening = () => {
+    const normalize = (s) => s.trim().replace(/\s+/g, '');
+    const isCorrect = normalize(listeningInput) === normalize(listeningWord.korean);
     
-    setIsPlaying(true);
-    const rate = speed === 'slow' ? 0.7 : 1.0;
-    await window.Audio.speak(listeningExercise.korean, { rate });
-    setIsPlaying(false);
-  }, [listeningExercise]);
-
-  const checkListening = useCallback(() => {
-    const isCorrect = window.compareKorean(listeningInput, listeningExercise.korean);
     setListeningFeedback(isCorrect ? 'correct' : 'incorrect');
-
-    if (settings.soundEffects && window.SoundFX) {
-      isCorrect ? window.SoundFX.correct() : window.SoundFX.incorrect();
-    }
-
     if (isCorrect) {
-      awardXP(12);
-      setStats(prev => {
-        const newStats = {
-          ...prev,
-          totalListening: prev.totalListening + 1,
-          streak: prev.streak + 1,
-          bestStreak: Math.max(prev.bestStreak, prev.streak + 1),
-        };
-        checkAchievements(newStats);
-        return newStats;
-      });
-    } else {
-      setStats(prev => ({ ...prev, streak: 0 }));
+      setStats(s => ({ ...s, xp: s.xp + 12, totalListening: s.totalListening + 1 }));
     }
-  }, [listeningInput, listeningExercise, settings.soundEffects, awardXP, checkAchievements]);
-
-  // ─────────────────────────────────────────────────────────────
-  // SETTINGS HANDLERS
-  // ─────────────────────────────────────────────────────────────
-
-  const updateSetting = useCallback((key, value) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  }, []);
-
-  const resetProgress = useCallback(() => {
-    if (confirm('Are you sure? This will reset ALL your progress including XP, achievements, and learning data!')) {
-      setStats(defaultStats);
-      if (window.SRS) window.SRS.resetAll();
-      showToast('Progress reset', 'info');
-    }
-  }, [showToast]);
-
-  // ─────────────────────────────────────────────────────────────
-  // RENDER HELPERS
-  // ─────────────────────────────────────────────────────────────
-
-  const currentLevel = useMemo(() => {
-    return window.getLevelInfo(stats.level) || window.LEVELS[0];
-  }, [stats.level]);
+  };
 
   // ═══════════════════════════════════════════════════════════════
-  // RENDER: LOADING SCREEN
+  // RENDER: HOME
   // ═══════════════════════════════════════════════════════════════
 
-  if (isLoading) {
+  if (view === 'home') {
     return (
-      <div className="loading-screen">
-        <div className="loading-icon">🇰🇷</div>
-        <div className="loading-text">한국어 Fluency Quest</div>
+      <div className="app">
+        <header className="hero">
+          <div className="hero-bg"></div>
+          <h1 className="title">
+            <span className="korean-title">한국어</span>
+            <span className="english-title">Fluency Quest</span>
+          </h1>
+          <p className="subtitle">Your Korean Learning Adventure</p>
+        </header>
+
+        <div className="stats-bar">
+          <div className="stat">
+            <span className="stat-icon">⚡</span>
+            <span className="stat-value">{stats.xp}</span>
+            <span className="stat-label">XP</span>
+          </div>
+          <div className="stat">
+            <span className="stat-icon">📖</span>
+            <span className="stat-value">{stats.totalReviews}</span>
+            <span className="stat-label">Reviews</span>
+          </div>
+          <div className="stat">
+            <span className="stat-icon">✓</span>
+            <span className="stat-value">{stats.totalQuizzes}</span>
+            <span className="stat-label">Quizzes</span>
+          </div>
+        </div>
+
+        <nav className="practice-modes">
+          <h2 className="section-title">Practice Modes</h2>
+          
+          <button className="mode-card" onClick={startFlashcards}>
+            <div className="mode-icon">🃏</div>
+            <div className="mode-info">
+              <h3>Flashcards</h3>
+              <p>Review vocabulary</p>
+            </div>
+            <div className="mode-arrow">→</div>
+          </button>
+
+          <button className="mode-card" onClick={startQuiz}>
+            <div className="mode-icon">❓</div>
+            <div className="mode-info">
+              <h3>Vocabulary Quiz</h3>
+              <p>Test your knowledge</p>
+            </div>
+            <div className="mode-arrow">→</div>
+          </button>
+
+          <button className="mode-card" onClick={startSentence}>
+            <div className="mode-icon">✍️</div>
+            <div className="mode-info">
+              <h3>Sentence Builder</h3>
+              <p>Write Korean sentences</p>
+            </div>
+            <div className="mode-arrow">→</div>
+          </button>
+
+          <button className="mode-card" onClick={startListening}>
+            <div className="mode-icon">👂</div>
+            <div className="mode-info">
+              <h3>Listening Practice</h3>
+              <p>Train your ears</p>
+            </div>
+            <div className="mode-arrow">→</div>
+          </button>
+
+          <button className="mode-card" onClick={() => setView('levels')}>
+            <div className="mode-icon">📚</div>
+            <div className="mode-info">
+              <h3>Browse Levels</h3>
+              <p>Study by topic</p>
+            </div>
+            <div className="mode-arrow">→</div>
+          </button>
+
+          <button className="mode-card" onClick={() => setView('grammar')}>
+            <div className="mode-icon">📖</div>
+            <div className="mode-info">
+              <h3>Grammar Reference</h3>
+              <p>Learn grammar rules</p>
+            </div>
+            <div className="mode-arrow">→</div>
+          </button>
+        </nav>
+
+        <div className="quick-actions">
+          <button className="quick-btn" onClick={() => setView('settings')}>
+            ⚙️ Settings
+          </button>
+        </div>
       </div>
     );
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // RENDER: HOME SCREEN
-  // ═══════════════════════════════════════════════════════════════
-
-  const renderHome = () => (
-    <div className="home-screen">
-      <header className="hero">
-        <div className="hero-bg"></div>
-        <h1 className="title">
-          <span className="korean-title">한국어</span>
-          <span className="english-title">Fluency Quest</span>
-        </h1>
-        <p className="subtitle">Your Korean Learning Adventure</p>
-      </header>
-
-      <div className="stats-bar">
-        <div className="stat">
-          <span className="stat-icon">⚡</span>
-          <span className="stat-value">{stats.xp}</span>
-          <span className="stat-label">XP</span>
-        </div>
-        <div className="stat">
-          <span className="stat-icon">🎯</span>
-          <span className="stat-value">Lv.{stats.level}</span>
-          <span className="stat-label">Level</span>
-        </div>
-        <div className="stat">
-          <span className="stat-icon">🔥</span>
-          <span className="stat-value">{stats.dailyStreak}</span>
-          <span className="stat-label">Days</span>
-        </div>
-        <div className="stat">
-          <span className="stat-icon">📖</span>
-          <span className="stat-value">{stats.totalReviews}</span>
-          <span className="stat-label">Reviews</span>
-        </div>
-      </div>
-
-      <nav className="practice-modes">
-        <h2 className="section-title">Practice Modes</h2>
-        
-        <button className="mode-card" onClick={() => startFlashcards()}>
-          <div className="mode-icon">🃏</div>
-          <div className="mode-info">
-            <h3>Flashcards</h3>
-            <p>Review vocabulary with spaced repetition</p>
-          </div>
-          <div className="mode-arrow">→</div>
-        </button>
-
-        <button className="mode-card" onClick={() => startQuiz('vocab')}>
-          <div className="mode-icon">❓</div>
-          <div className="mode-info">
-            <h3>Vocabulary Quiz</h3>
-            <p>Test your word knowledge</p>
-          </div>
-          <div className="mode-arrow">→</div>
-        </button>
-
-        <button className="mode-card" onClick={() => startSentenceBuilder()}>
-          <div className="mode-icon">✍️</div>
-          <div className="mode-info">
-            <h3>Sentence Builder</h3>
-            <p>Practice writing full sentences</p>
-          </div>
-          <div className="mode-arrow">→</div>
-        </button>
-
-        <button className="mode-card" onClick={() => startListening()}>
-          <div className="mode-icon">👂</div>
-          <div className="mode-info">
-            <h3>Listening Practice</h3>
-            <p>Train your ears with audio</p>
-          </div>
-          <div className="mode-arrow">→</div>
-        </button>
-
-        <button className="mode-card" onClick={() => setView('levels')}>
-          <div className="mode-icon">📚</div>
-          <div className="mode-info">
-            <h3>Browse Levels</h3>
-            <p>Study by topic and grammar point</p>
-          </div>
-          <div className="mode-arrow">→</div>
-        </button>
-
-        <button className="mode-card" onClick={() => setView('grammar')}>
-          <div className="mode-icon">📖</div>
-          <div className="mode-info">
-            <h3>Grammar Reference</h3>
-            <p>Browse all grammar points with examples</p>
-          </div>
-          <div className="mode-arrow">→</div>
-        </button>
-      </nav>
-
-      <div className="quick-actions">
-        <button className="quick-btn" onClick={() => setView('achievements')}>
-          🏆 Achievements ({stats.achievements.length}/{window.ACHIEVEMENTS.length})
-        </button>
-        <button className="quick-btn" onClick={() => setView('stats')}>
-          📊 Statistics
-        </button>
-        <button className="quick-btn" onClick={() => setView('settings')}>
-          ⚙️ Settings
-        </button>
-      </div>
-    </div>
-  );
-
-  // ═══════════════════════════════════════════════════════════════
   // RENDER: FLASHCARDS
   // ═══════════════════════════════════════════════════════════════
 
-  const renderFlashcards = () => {
-    if (flashcardDeck.length === 0) return null;
-    const card = flashcardDeck[currentCardIndex];
-    const showKoreanFirst = settings.cardDirection === 'korean-first';
-    const mastery = settings.srsEnabled && window.SRS ? window.SRS.getMasteryLevel(card.id) : 0;
+  if (view === 'flashcards') {
+    if (deck.length === 0) {
+      return (
+        <div className="app">
+          <p style={{ padding: 20, textAlign: 'center' }}>Loading cards...</p>
+        </div>
+      );
+    }
+
+    const card = deck[cardIndex];
 
     return (
-      <div className="flashcard-screen">
+      <div className="app">
         <header className="screen-header">
           <button className="back-btn" onClick={() => setView('home')}>← Back</button>
-          <div className="progress-text">{currentCardIndex + 1} / {flashcardDeck.length}</div>
-          <div className="streak-indicator">🔥 {sessionStreak}</div>
+          <div className="progress-text">{cardIndex + 1} / {deck.length}</div>
         </header>
 
         <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${((currentCardIndex + 1) / flashcardDeck.length) * 100}%` }} />
+          <div className="progress-fill" style={{ width: `${((cardIndex + 1) / deck.length) * 100}%` }}></div>
         </div>
 
         <div className="flashcard-container" onClick={() => setIsFlipped(!isFlipped)}>
           <div className={`flashcard ${isFlipped ? 'flipped' : ''}`}>
             <div className="card-face card-front">
               <span className="card-level">Level {card.level}</span>
-              {settings.audioEnabled && (
-                <button 
-                  className="card-audio-btn" 
-                  onClick={(e) => { e.stopPropagation(); playCardAudio(); }}
-                >
-                  🔊
-                </button>
-              )}
-              <div className="mastery-dots">
-                {[1, 2, 3, 4, 5].map(n => (
-                  <div key={n} className={`mastery-dot ${n <= mastery ? (mastery >= 5 ? 'mastered' : 'filled') : ''}`} />
-                ))}
-              </div>
-              <p className="card-korean">{showKoreanFirst ? card.korean : card.english}</p>
-              {showKoreanFirst && settings.showRomanization && (
+              <p className="card-korean">{card.korean}</p>
+              {settings.showRomanization && card.romanization && (
                 <p className="card-romanization">{card.romanization}</p>
               )}
               <span className="tap-hint">Tap to flip</span>
             </div>
             <div className="card-face card-back">
-              <p className="card-english">{showKoreanFirst ? card.english : card.korean}</p>
+              <p className="card-english">{card.english}</p>
               {card.example && <p className="card-example">{card.example}</p>}
-              {card.grammar && <span className="card-grammar">{card.grammar}</span>}
             </div>
           </div>
         </div>
 
         {isFlipped && (
           <div className="response-buttons">
-            <button className="response-btn again" onClick={() => handleCardResponse(window.SRS_QUALITY.AGAIN)}>
-              <span className="emoji">😕</span>
-              <span>Again</span>
+            <button className="response-btn again" onClick={() => nextCard(false)}>
+              <span>❌ Wrong</span>
             </button>
-            <button className="response-btn hard" onClick={() => handleCardResponse(window.SRS_QUALITY.HARD)}>
-              <span className="emoji">😐</span>
-              <span>Hard</span>
-            </button>
-            <button className="response-btn good" onClick={() => handleCardResponse(window.SRS_QUALITY.GOOD)}>
-              <span className="emoji">😊</span>
-              <span>Good</span>
-            </button>
-            <button className="response-btn easy" onClick={() => handleCardResponse(window.SRS_QUALITY.EASY)}>
-              <span className="emoji">😄</span>
-              <span>Easy</span>
+            <button className="response-btn good" onClick={() => nextCard(true)}>
+              <span>✓ Correct</span>
             </button>
           </div>
         )}
 
-        <div className="session-stats">
-          <span>✓ {sessionCorrect}</span>
-          <span>|</span>
-          <span>✗ {sessionTotal - sessionCorrect}</span>
-        </div>
+        {settings.audioEnabled && (
+          <button 
+            className="primary-btn" 
+            style={{ margin: '20px auto', display: 'block' }}
+            onClick={() => playAudio(card.korean)}
+          >
+            🔊 Play Audio
+          </button>
+        )}
       </div>
     );
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // RENDER: FLASHCARD RESULTS
   // ═══════════════════════════════════════════════════════════════
 
-  const renderFlashcardResults = () => {
-    const accuracy = sessionTotal > 0 ? Math.round((sessionCorrect / sessionTotal) * 100) : 0;
-    
+  if (view === 'flashcard-results') {
+    const accuracy = deck.length > 0 ? Math.round((correct / deck.length) * 100) : 0;
+
     return (
-      <div className="results-screen">
-        <div className="results-card animate-slide-up">
-          <h2>Session Complete! 🎉</h2>
-          
-          <div className="results-stats">
-            <div className="result-stat">
-              <span className="result-value">{sessionCorrect}/{sessionTotal}</span>
-              <span className="result-label">Correct</span>
+      <div className="app">
+        <div className="results-screen">
+          <div className="results-card">
+            <h2>Session Complete! 🎉</h2>
+            <div className="results-stats">
+              <div className="result-stat">
+                <span className="result-value">{correct}/{deck.length}</span>
+                <span className="result-label">Correct</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-value">{accuracy}%</span>
+                <span className="result-label">Accuracy</span>
+              </div>
             </div>
-            <div className="result-stat">
-              <span className="result-value">{accuracy}%</span>
-              <span className="result-label">Accuracy</span>
+            <div className="result-actions">
+              <button className="primary-btn" onClick={startFlashcards}>
+                Practice Again
+              </button>
+              <button className="secondary-btn" onClick={() => setView('home')}>
+                Back to Home
+              </button>
             </div>
-            <div className="result-stat">
-              <span className="result-value">{stats.bestStreak}</span>
-              <span className="result-label">Best Streak</span>
-            </div>
-          </div>
-
-          <div className="xp-earned">
-            +{sessionCorrect * 5} XP earned!
-          </div>
-
-          <div className="result-actions">
-            <button className="primary-btn" onClick={() => startFlashcards()}>
-              Practice Again
-            </button>
-            <button className="secondary-btn" onClick={() => setView('home')}>
-              Back to Home
-            </button>
           </div>
         </div>
       </div>
     );
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // RENDER: QUIZ
   // ═══════════════════════════════════════════════════════════════
 
-  const renderQuiz = () => {
-    if (quizQuestions.length === 0) return null;
-    const question = quizQuestions[currentQuizIndex];
+  if (view === 'quiz') {
+    if (quizQuestions.length === 0) {
+      return (
+        <div className="app">
+          <p style={{ padding: 20, textAlign: 'center' }}>Loading quiz...</p>
+        </div>
+      );
+    }
+
+    const q = quizQuestions[quizIndex];
 
     return (
-      <div className="quiz-screen">
+      <div className="app">
         <header className="screen-header">
           <button className="back-btn" onClick={() => setView('home')}>← Back</button>
-          <div className="progress-text">Question {currentQuizIndex + 1} / {quizQuestions.length}</div>
-          <span className="streak-indicator">✓ {quizAnswers.filter(a => a.isCorrect).length}</span>
+          <div className="progress-text">Question {quizIndex + 1} / {quizQuestions.length}</div>
         </header>
 
         <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${((currentQuizIndex + 1) / quizQuestions.length) * 100}%` }} />
+          <div className="progress-fill" style={{ width: `${((quizIndex + 1) / quizQuestions.length) * 100}%` }}></div>
         </div>
 
-        <div className="quiz-content">
+        <div className="quiz-content" style={{ padding: 20 }}>
           <div className="quiz-question">
             <span className="question-label">What does this mean?</span>
-            <p className="question-korean">{question.question}</p>
-            {settings.audioEnabled && (
-              <button 
-                className="card-audio-btn" 
-                style={{ margin: '16px auto', position: 'relative' }}
-                onClick={() => window.Audio?.speak(question.question)}
-              >
-                🔊
-              </button>
-            )}
+            <p className="question-korean">{q.korean}</p>
           </div>
 
           <div className="quiz-options">
-            {question.options.map((option, i) => (
+            {q.options.map((option, i) => (
               <button
                 key={i}
                 className={`quiz-option ${
                   selectedAnswer === option
-                    ? option === question.correct ? 'correct' : 'incorrect'
+                    ? option === q.correct ? 'correct' : 'incorrect'
                     : ''
-                } ${quizFeedback && option === question.correct ? 'show-correct' : ''}`}
-                onClick={() => !selectedAnswer && submitQuizAnswer(option)}
+                } ${selectedAnswer && option === q.correct ? 'show-correct' : ''}`}
+                onClick={() => !selectedAnswer && answerQuiz(option)}
                 disabled={selectedAnswer !== null}
               >
                 {option}
               </button>
             ))}
           </div>
-
-          {quizFeedback && (
-            <div className={`feedback ${quizFeedback}`}>
-              {quizFeedback === 'correct' ? '✓ Correct!' : `✗ The answer was: ${question.correct}`}
-            </div>
-          )}
         </div>
       </div>
     );
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // RENDER: QUIZ RESULTS
   // ═══════════════════════════════════════════════════════════════
 
-  const renderQuizResults = () => {
-    const correct = quizAnswers.filter(a => a.isCorrect).length;
-    const total = quizQuestions.length;
-    const percentage = Math.round((correct / total) * 100);
+  if (view === 'quiz-results') {
+    const percentage = quizQuestions.length > 0 
+      ? Math.round((quizScore / quizQuestions.length) * 100) 
+      : 0;
 
     return (
-      <div className="results-screen">
-        <div className="results-card animate-slide-up">
-          <h2>Quiz Complete! 🎉</h2>
-          
-          <div className="results-stats">
-            <div className="result-stat">
-              <span className="result-value">{correct}/{total}</span>
-              <span className="result-label">Correct</span>
+      <div className="app">
+        <div className="results-screen">
+          <div className="results-card">
+            <h2>Quiz Complete! 🎉</h2>
+            <div className="results-stats">
+              <div className="result-stat">
+                <span className="result-value">{quizScore}/{quizQuestions.length}</span>
+                <span className="result-label">Correct</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-value">{percentage}%</span>
+                <span className="result-label">Score</span>
+              </div>
             </div>
-            <div className="result-stat">
-              <span className="result-value">{percentage}%</span>
-              <span className="result-label">Score</span>
+            <div className="result-actions">
+              <button className="primary-btn" onClick={startQuiz}>
+                Try Again
+              </button>
+              <button className="secondary-btn" onClick={() => setView('home')}>
+                Back to Home
+              </button>
             </div>
-          </div>
-
-          <div className="xp-earned">
-            +{correct * 10}{percentage === 100 ? ' +30 bonus' : ''} XP earned!
-          </div>
-
-          <div className="result-actions">
-            <button className="primary-btn" onClick={() => startQuiz()}>
-              Try Again
-            </button>
-            <button className="secondary-btn" onClick={() => setView('home')}>
-              Back to Home
-            </button>
           </div>
         </div>
       </div>
     );
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // RENDER: SENTENCE BUILDER
   // ═══════════════════════════════════════════════════════════════
 
-  const renderSentenceBuilder = () => {
-    if (!sentenceExercise) return null;
+  if (view === 'sentence') {
+    if (!sentence) {
+      return (
+        <div className="app">
+          <p style={{ padding: 20, textAlign: 'center' }}>Loading sentence...</p>
+        </div>
+      );
+    }
 
     return (
-      <div className="sentence-screen">
+      <div className="app">
         <header className="screen-header">
           <button className="back-btn" onClick={() => setView('home')}>← Back</button>
           <h2>Sentence Builder</h2>
-          <span className="streak-indicator">Level {sentenceExercise.level}</span>
         </header>
 
-        <div className="sentence-content">
+        <div className="sentence-content" style={{ padding: 20 }}>
           <div className="sentence-prompt">
             <span className="prompt-label">Translate to Korean:</span>
-            <p className="prompt-english">{sentenceExercise.english}</p>
-            {sentenceExercise.grammar && (
-              <span className="card-grammar" style={{ marginTop: 12 }}>{sentenceExercise.grammar}</span>
-            )}
+            <p className="prompt-english">{sentence.english}</p>
           </div>
 
           <div className="sentence-input-area">
             <input
               type="text"
-              className={`sentence-input ${sentenceFeedback || ''}`}
-              value={userSentenceInput}
-              onChange={(e) => setUserSentenceInput(e.target.value)}
-              placeholder="Type your answer in Korean..."
-              disabled={sentenceFeedback !== null}
-              autoFocus
+              className={`sentence-input ${feedback || ''}`}
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Type in Korean..."
+              disabled={feedback !== null}
             />
             
-            {!sentenceFeedback && (
+            {!feedback && (
               <button 
                 className="primary-btn"
                 style={{ width: '100%', marginTop: 16 }}
                 onClick={checkSentence}
-                disabled={!userSentenceInput.trim()}
+                disabled={!userInput.trim()}
               >
                 Check Answer
               </button>
             )}
           </div>
 
-          {sentenceFeedback && (
-            <div className={`sentence-feedback ${sentenceFeedback}`}>
-              {sentenceFeedback === 'correct' ? (
-                <>
-                  <span className="feedback-icon">✓</span>
-                  <span>Perfect! 완벽해요!</span>
-                </>
+          {feedback && (
+            <div className={`sentence-feedback ${feedback}`}>
+              {feedback === 'correct' ? (
+                <span>✓ Correct! 완벽해요!</span>
               ) : (
-                <>
-                  <span className="feedback-icon">✗</span>
-                  <div>
-                    <p>Not quite. The correct answer is:</p>
-                    <p className="correct-answer">{sentenceExercise.korean}</p>
-                  </div>
-                </>
+                <div>
+                  <p>✗ Not quite. The answer is:</p>
+                  <p className="correct-answer">{sentence.korean}</p>
+                </div>
               )}
             </div>
           )}
 
-          {sentenceFeedback && (
+          {feedback && (
             <div className="result-actions" style={{ marginTop: 24 }}>
-              <button className="primary-btn" onClick={startSentenceBuilder}>
+              <button className="primary-btn" onClick={startSentence}>
                 Next Sentence
               </button>
               <button className="secondary-btn" onClick={() => setView('home')}>
@@ -958,40 +628,45 @@ function App() {
         </div>
       </div>
     );
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════════
-  // RENDER: LISTENING MODE
+  // RENDER: LISTENING
   // ═══════════════════════════════════════════════════════════════
 
-  const renderListening = () => {
-    if (!listeningExercise) return null;
+  if (view === 'listening') {
+    if (!listeningWord) {
+      return (
+        <div className="app">
+          <p style={{ padding: 20, textAlign: 'center' }}>Loading...</p>
+        </div>
+      );
+    }
 
     return (
-      <div className="listening-screen">
+      <div className="app">
         <header className="screen-header">
           <button className="back-btn" onClick={() => setView('home')}>← Back</button>
           <h2>Listening Practice</h2>
-          <span className="streak-indicator">Level {listeningExercise.level}</span>
         </header>
 
-        <div className="sentence-content">
-          <div className="listening-prompt">
-            <span className="prompt-label">Listen and type what you hear:</span>
+        <div className="sentence-content" style={{ padding: 20 }}>
+          <div className="listening-prompt" style={{ textAlign: 'center', marginBottom: 30 }}>
+            <p style={{ marginBottom: 20, color: 'var(--text-secondary)' }}>Listen and type what you hear:</p>
             
             <button 
-              className={`play-audio-btn ${isPlaying ? 'playing' : ''}`}
-              onClick={() => playListeningAudio()}
-              disabled={isPlaying}
+              className="primary-btn"
+              style={{ fontSize: '1.5rem', padding: '20px 40px' }}
+              onClick={() => playAudio(listeningWord.korean)}
             >
-              {isPlaying ? '🔊' : '▶️'}
+              🔊 Play
             </button>
 
-            <div className="speed-controls">
-              <button className="speed-btn" onClick={() => playListeningAudio('slow')}>
+            <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button className="secondary-btn" onClick={() => playAudio(listeningWord.korean, 0.6)}>
                 🐢 Slow
               </button>
-              <button className="speed-btn" onClick={() => playListeningAudio('normal')}>
+              <button className="secondary-btn" onClick={() => playAudio(listeningWord.korean, 1.0)}>
                 🐇 Normal
               </button>
             </div>
@@ -1003,7 +678,7 @@ function App() {
               className={`sentence-input ${listeningFeedback || ''}`}
               value={listeningInput}
               onChange={(e) => setListeningInput(e.target.value)}
-              placeholder="Type what you heard in Korean..."
+              placeholder="Type what you hear..."
               disabled={listeningFeedback !== null}
             />
             
@@ -1022,23 +697,17 @@ function App() {
           {listeningFeedback && (
             <div className={`sentence-feedback ${listeningFeedback}`}>
               {listeningFeedback === 'correct' ? (
-                <>
-                  <span className="feedback-icon">✓</span>
-                  <div>
-                    <span>Perfect! 완벽해요!</span>
-                    <p className="correct-answer">{listeningExercise.korean}</p>
-                    <p style={{ marginTop: 8, color: 'inherit', opacity: 0.8 }}>{listeningExercise.english}</p>
-                  </div>
-                </>
+                <div>
+                  <span>✓ Correct!</span>
+                  <p className="correct-answer">{listeningWord.korean}</p>
+                  <p style={{ opacity: 0.8 }}>{listeningWord.english}</p>
+                </div>
               ) : (
-                <>
-                  <span className="feedback-icon">✗</span>
-                  <div>
-                    <p>The correct answer was:</p>
-                    <p className="correct-answer">{listeningExercise.korean}</p>
-                    <p style={{ marginTop: 8, opacity: 0.8 }}>{listeningExercise.english}</p>
-                  </div>
-                </>
+                <div>
+                  <p>✗ The answer was:</p>
+                  <p className="correct-answer">{listeningWord.korean}</p>
+                  <p style={{ opacity: 0.8 }}>{listeningWord.english}</p>
+                </div>
               )}
             </div>
           )}
@@ -1056,445 +725,138 @@ function App() {
         </div>
       </div>
     );
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // RENDER: LEVELS
   // ═══════════════════════════════════════════════════════════════
 
-  const renderLevels = () => (
-    <div className="levels-screen">
-      <header className="screen-header">
-        <button className="back-btn" onClick={() => setView('home')}>← Back</button>
-        <h2>Study by Level</h2>
-      </header>
-
-      <div className="levels-grid">
-        {window.LEVELS.map(level => {
-          const vocabCount = window.getVocabCountByLevel(level.level);
-          const isLocked = level.level > settings.maxLevel;
-          
-          return (
-            <button
-              key={level.level}
-              className={`level-card ${isLocked ? 'locked' : ''}`}
-              onClick={() => !isLocked && startFlashcards(level.level)}
-              disabled={isLocked}
-            >
-              <div className="level-emoji">{level.emoji}</div>
-              <div className="level-info">
-                <span className="level-number">Level {level.level}</span>
-                <h3 className="level-title">{level.title}</h3>
-                <p className="level-focus">{level.focus}</p>
-                {vocabCount > 0 && <span className="level-vocab">{vocabCount} words</span>}
-              </div>
-              {isLocked && <span className="lock-icon">🔒</span>}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  // ═══════════════════════════════════════════════════════════════
-  // RENDER: ACHIEVEMENTS
-  // ═══════════════════════════════════════════════════════════════
-
-  const renderAchievements = () => (
-    <div className="achievements-screen">
-      <header className="screen-header">
-        <button className="back-btn" onClick={() => setView('home')}>← Back</button>
-        <h2>Achievements</h2>
-      </header>
-
-      <div className="achievements-grid">
-        {window.ACHIEVEMENTS.map(achievement => {
-          const unlocked = stats.achievements.includes(achievement.id);
-          
-          return (
-            <div 
-              key={achievement.id}
-              className={`achievement-card ${unlocked ? 'unlocked' : 'locked'}`}
-            >
-              <div className="achievement-icon">{achievement.icon}</div>
-              <div className="achievement-info">
-                <h3>{achievement.name}</h3>
-                <p>{achievement.desc}</p>
-                <span className="achievement-xp">+{achievement.xp} XP</span>
-              </div>
-              {unlocked && <span className="check-mark">✓</span>}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  // ═══════════════════════════════════════════════════════════════
-  // RENDER: STATISTICS
-  // ═══════════════════════════════════════════════════════════════
-
-  const renderStats = () => {
-    const srsStats = settings.srsEnabled && window.SRS 
-      ? window.SRS.getStats(window.VOCABULARY.map(v => v.id))
-      : { mastered: 0, learning: 0, newCards: window.VOCABULARY.length, totalReviews: 0 };
+  if (view === 'levels') {
+    const levels = window.LEVELS || [];
 
     return (
-      <div className="stats-screen">
+      <div className="app">
         <header className="screen-header">
           <button className="back-btn" onClick={() => setView('home')}>← Back</button>
-          <h2>Statistics</h2>
+          <h2>Browse Levels</h2>
         </header>
 
-        <div className="settings-content">
-          <div className="setting-group">
-            <label className="setting-label">Overall Progress</label>
-            <div className="stat-row">
-              <span>Total XP</span>
-              <span>{stats.xp}</span>
-            </div>
-            <div className="stat-row">
-              <span>Current Level</span>
-              <span>{stats.level}</span>
-            </div>
-            <div className="stat-row">
-              <span>Best Streak</span>
-              <span>{stats.bestStreak}</span>
-            </div>
-            <div className="stat-row">
-              <span>Daily Streak</span>
-              <span>{stats.dailyStreak} days</span>
-            </div>
-          </div>
-
-          <div className="setting-group">
-            <label className="setting-label">Practice Stats</label>
-            <div className="stat-row">
-              <span>Flashcard Reviews</span>
-              <span>{stats.totalReviews}</span>
-            </div>
-            <div className="stat-row">
-              <span>Quizzes Completed</span>
-              <span>{stats.totalQuizzes}</span>
-            </div>
-            <div className="stat-row">
-              <span>Perfect Quizzes</span>
-              <span>{stats.perfectQuizzes}</span>
-            </div>
-            <div className="stat-row">
-              <span>Sentences Written</span>
-              <span>{stats.totalSentences}</span>
-            </div>
-            <div className="stat-row">
-              <span>Listening Exercises</span>
-              <span>{stats.totalListening}</span>
-            </div>
-          </div>
-
-          {settings.srsEnabled && (
-            <div className="setting-group">
-              <label className="setting-label">Vocabulary Progress</label>
-              <div className="stat-row">
-                <span>Mastered Words</span>
-                <span>{srsStats.mastered}</span>
-              </div>
-              <div className="stat-row">
-                <span>Learning</span>
-                <span>{srsStats.learning}</span>
-              </div>
-              <div className="stat-row">
-                <span>New Words</span>
-                <span>{srsStats.newCards}</span>
-              </div>
-            </div>
-          )}
+        <div className="levels-grid" style={{ padding: 20 }}>
+          {levels.map(level => {
+            const vocabCount = (window.VOCABULARY || []).filter(v => v.level === level.level).length;
+            
+            return (
+              <button
+                key={level.level}
+                className="level-card"
+                onClick={() => {
+                  const vocab = (window.VOCABULARY || []).filter(v => v.level === level.level);
+                  if (vocab.length > 0) {
+                    setDeck(shuffle(vocab).slice(0, 20));
+                    setCardIndex(0);
+                    setIsFlipped(false);
+                    setCorrect(0);
+                    setView('flashcards');
+                  } else {
+                    alert('No vocabulary for this level yet!');
+                  }
+                }}
+              >
+                <div className="level-emoji">{level.emoji}</div>
+                <div className="level-info">
+                  <span className="level-number">Level {level.level}</span>
+                  <h3 className="level-title">{level.title}</h3>
+                  <p className="level-focus">{level.focus}</p>
+                  {vocabCount > 0 && <span className="level-vocab">{vocabCount} words</span>}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     );
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════════
-  // RENDER: SETTINGS
+  // RENDER: GRAMMAR
   // ═══════════════════════════════════════════════════════════════
 
-  const renderSettings = () => (
-    <div className="settings-screen">
-      <header className="screen-header">
-        <button className="back-btn" onClick={() => setView('home')}>← Back</button>
-        <h2>Settings</h2>
-      </header>
+  if (view === 'grammar') {
+    const grammar = window.GRAMMAR || [];
 
-      <div className="settings-content">
-        <div className="setting-group">
-          <label className="setting-label">Card Direction</label>
-          <select
-            className="setting-select"
-            value={settings.cardDirection}
-            onChange={(e) => updateSetting('cardDirection', e.target.value)}
-          >
-            <option value="korean-first">Korean → English</option>
-            <option value="english-first">English → Korean</option>
-          </select>
-        </div>
-
-        <div className="setting-group">
-          <label className="setting-label">Max Level (for practice)</label>
-          <select
-            className="setting-select"
-            value={settings.maxLevel}
-            onChange={(e) => updateSetting('maxLevel', parseInt(e.target.value))}
-          >
-            {[5, 10, 15, 21, 30, 40].map(level => (
-              <option key={level} value={level}>Up to Level {level}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="setting-group">
-          <div className="setting-toggle">
-            <span>Show Romanization</span>
-            <div 
-              className={`toggle-switch ${settings.showRomanization ? 'active' : ''}`}
-              onClick={() => updateSetting('showRomanization', !settings.showRomanization)}
-            />
-          </div>
-        </div>
-
-        <div className="setting-group">
-          <div className="setting-toggle">
-            <span>Audio Enabled</span>
-            <div 
-              className={`toggle-switch ${settings.audioEnabled ? 'active' : ''}`}
-              onClick={() => updateSetting('audioEnabled', !settings.audioEnabled)}
-            />
-          </div>
-        </div>
-
-        <div className="setting-group">
-          <div className="setting-toggle">
-            <span>Sound Effects</span>
-            <div 
-              className={`toggle-switch ${settings.soundEffects ? 'active' : ''}`}
-              onClick={() => updateSetting('soundEffects', !settings.soundEffects)}
-            />
-          </div>
-        </div>
-
-        <div className="setting-group">
-          <div className="setting-toggle">
-            <span>Spaced Repetition (SRS)</span>
-            <div 
-              className={`toggle-switch ${settings.srsEnabled ? 'active' : ''}`}
-              onClick={() => updateSetting('srsEnabled', !settings.srsEnabled)}
-            />
-          </div>
-        </div>
-
-        <div className="setting-group danger">
-          <label className="setting-label">Danger Zone</label>
-          <button className="danger-btn" onClick={resetProgress}>
-            Reset All Progress
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // ═══════════════════════════════════════════════════════════════
-  // RENDER: GRAMMAR REFERENCE
-  // ═══════════════════════════════════════════════════════════════
-
-  const renderGrammar = () => {
-    // If a grammar point is selected, show detail view
     if (selectedGrammar) {
-      const grammar = selectedGrammar;
-      const relatedItems = window.getRelatedGrammar ? window.getRelatedGrammar(grammar) : [];
-      
       return (
-        <div className="grammar-detail-screen">
+        <div className="app">
           <header className="screen-header">
             <button className="back-btn" onClick={() => setSelectedGrammar(null)}>← Back</button>
-            <h2>Grammar Detail</h2>
+            <h2>Grammar</h2>
           </header>
 
-          <div className="grammar-detail-content" style={{ padding: '24px 20px' }}>
-            <div className="grammar-header" style={{ 
-              background: 'var(--bg-card)', 
-              borderRadius: 'var(--radius-lg)', 
-              padding: '24px',
-              marginBottom: '20px',
-              border: '1px solid var(--border-subtle)'
-            }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>{grammar.emoji}</div>
-              <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>{grammar.title}</h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>{grammar.shortDesc}</p>
-              <div style={{ 
-                background: 'var(--bg-elevated)', 
-                padding: '12px 16px', 
-                borderRadius: 'var(--radius-md)',
-                fontFamily: 'var(--font-korean)',
-                fontSize: '1.1rem',
-                color: 'var(--accent-primary)'
-              }}>
-                {grammar.pattern}
+          <div style={{ padding: 20 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+              <div style={{ fontSize: '2rem', marginBottom: 10 }}>{selectedGrammar.emoji}</div>
+              <h2 style={{ marginBottom: 8 }}>{selectedGrammar.title}</h2>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>{selectedGrammar.shortDesc}</p>
+              <div style={{ background: 'var(--bg-elevated)', padding: 12, borderRadius: 8, color: 'var(--accent-primary)' }}>
+                {selectedGrammar.pattern}
               </div>
             </div>
 
-            <div className="grammar-explanation" style={{ 
-              background: 'var(--bg-card)', 
-              borderRadius: 'var(--radius-lg)', 
-              padding: '20px',
-              marginBottom: '20px',
-              border: '1px solid var(--border-subtle)',
-              lineHeight: '1.7'
-            }}>
-              <h3 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Explanation</h3>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{grammar.explanation}</div>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 20, marginBottom: 20, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+              {selectedGrammar.explanation}
             </div>
 
-            <div className="grammar-examples" style={{ 
-              background: 'var(--bg-card)', 
-              borderRadius: 'var(--radius-lg)', 
-              padding: '20px',
-              marginBottom: '20px',
-              border: '1px solid var(--border-subtle)'
-            }}>
-              <h3 style={{ marginBottom: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Examples</h3>
-              {grammar.examples.map((ex, i) => (
-                <div key={i} style={{ 
-                  padding: '16px',
-                  background: 'var(--bg-elevated)',
-                  borderRadius: 'var(--radius-md)',
-                  marginBottom: '12px'
-                }}>
-                  <div style={{ 
-                    fontFamily: 'var(--font-korean)', 
-                    fontSize: '1.2rem',
-                    marginBottom: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                  }}>
-                    {ex.korean}
-                    {settings.audioEnabled && (
-                      <button
-                        onClick={() => window.Audio?.speak(ex.korean)}
-                        style={{
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: '50%',
-                          width: '32px',
-                          height: '32px',
-                          cursor: 'pointer',
-                          fontSize: '0.9rem'
-                        }}
-                      >
-                        🔊
-                      </button>
-                    )}
-                  </div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{ex.english}</div>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 20 }}>
+              <h3 style={{ marginBottom: 16, color: 'var(--text-secondary)' }}>Examples</h3>
+              {selectedGrammar.examples.map((ex, i) => (
+                <div key={i} style={{ padding: 12, background: 'var(--bg-elevated)', borderRadius: 8, marginBottom: 10 }}>
+                  <p style={{ fontSize: '1.1rem', marginBottom: 6 }}>{ex.korean}</p>
+                  <p style={{ color: 'var(--text-secondary)' }}>{ex.english}</p>
                 </div>
               ))}
             </div>
 
-            {grammar.tips && (
-              <div className="grammar-tips" style={{ 
-                background: 'rgba(255, 107, 157, 0.1)', 
-                borderRadius: 'var(--radius-lg)', 
-                padding: '20px',
-                marginBottom: '20px',
-                border: '1px solid rgba(255, 107, 157, 0.3)'
-              }}>
-                <h3 style={{ marginBottom: '8px', color: 'var(--accent-primary)', fontSize: '0.9rem' }}>💡 Pro Tip</h3>
-                <p>{grammar.tips}</p>
+            {selectedGrammar.tips && (
+              <div style={{ background: 'rgba(255, 107, 157, 0.1)', borderRadius: 12, padding: 20, marginTop: 20 }}>
+                <strong style={{ color: 'var(--accent-primary)' }}>💡 Tip:</strong> {selectedGrammar.tips}
               </div>
             )}
-
-            {relatedItems.length > 0 && (
-              <div className="related-grammar" style={{ marginBottom: '20px' }}>
-                <h3 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase' }}>Related Grammar</h3>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {relatedItems.map(related => (
-                    <button
-                      key={related.id}
-                      onClick={() => setSelectedGrammar(related)}
-                      style={{
-                        padding: '8px 16px',
-                        background: 'var(--bg-card)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-md)',
-                        color: 'var(--text-primary)',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {related.emoji} {related.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <button 
-              className="primary-btn" 
-              style={{ width: '100%' }}
-              onClick={() => {
-                // Start flashcards focusing on this grammar point's level
-                startFlashcards(grammar.level);
-              }}
-            >
-              Practice Level {grammar.level} Vocabulary
-            </button>
           </div>
         </div>
       );
     }
 
-    // Grammar list view
-    const grammarByLevel = {};
-    (window.GRAMMAR || []).forEach(g => {
-      if (!grammarByLevel[g.level]) grammarByLevel[g.level] = [];
-      grammarByLevel[g.level].push(g);
+    // Group grammar by level
+    const byLevel = {};
+    grammar.forEach(g => {
+      if (!byLevel[g.level]) byLevel[g.level] = [];
+      byLevel[g.level].push(g);
     });
 
     return (
-      <div className="grammar-screen">
+      <div className="app">
         <header className="screen-header">
           <button className="back-btn" onClick={() => setView('home')}>← Back</button>
           <h2>Grammar Reference</h2>
         </header>
 
-        <div className="grammar-list" style={{ padding: '24px 20px' }}>
-          {Object.keys(grammarByLevel).sort((a, b) => a - b).map(level => (
-            <div key={level} style={{ marginBottom: '24px' }}>
-              <h3 style={{ 
-                fontSize: '0.85rem', 
-                color: 'var(--accent-primary)', 
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                marginBottom: '12px',
-                paddingLeft: '4px'
-              }}>
+        <div style={{ padding: 20 }}>
+          {Object.keys(byLevel).sort((a, b) => a - b).map(level => (
+            <div key={level} style={{ marginBottom: 24 }}>
+              <h3 style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', marginBottom: 10, textTransform: 'uppercase' }}>
                 Level {level}
               </h3>
-              
-              {grammarByLevel[level].map(grammar => (
+              {byLevel[level].map(g => (
                 <button
-                  key={grammar.id}
+                  key={g.id}
                   className="level-card"
-                  onClick={() => setSelectedGrammar(grammar)}
-                  style={{ marginBottom: '8px' }}
+                  style={{ marginBottom: 8 }}
+                  onClick={() => setSelectedGrammar(g)}
                 >
-                  <div className="level-emoji">{grammar.emoji}</div>
+                  <div className="level-emoji">{g.emoji}</div>
                   <div className="level-info">
-                    <h3 className="level-title">{grammar.title}</h3>
-                    <p className="level-focus">{grammar.shortDesc}</p>
-                    <span className="level-vocab" style={{ 
-                      fontFamily: 'var(--font-korean)',
-                      color: 'var(--accent-tertiary)'
-                    }}>
-                      {grammar.pattern}
-                    </span>
+                    <h3 className="level-title">{g.title}</h3>
+                    <p className="level-focus">{g.shortDesc}</p>
                   </div>
                 </button>
               ))}
@@ -1503,45 +865,78 @@ function App() {
         </div>
       </div>
     );
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════════
-  // MAIN RENDER
+  // RENDER: SETTINGS
   // ═══════════════════════════════════════════════════════════════
 
+  if (view === 'settings') {
+    return (
+      <div className="app">
+        <header className="screen-header">
+          <button className="back-btn" onClick={() => setView('home')}>← Back</button>
+          <h2>Settings</h2>
+        </header>
+
+        <div className="settings-content" style={{ padding: 20 }}>
+          <div className="setting-group">
+            <label className="setting-label">Max Level (for practice)</label>
+            <select
+              className="setting-select"
+              value={settings.maxLevel}
+              onChange={(e) => setSettings(s => ({ ...s, maxLevel: parseInt(e.target.value) }))}
+            >
+              {[5, 10, 15, 20, 25, 30, 35, 40].map(level => (
+                <option key={level} value={level}>Up to Level {level}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="setting-group">
+            <div className="setting-toggle">
+              <span>Show Romanization</span>
+              <div 
+                className={`toggle-switch ${settings.showRomanization ? 'active' : ''}`}
+                onClick={() => setSettings(s => ({ ...s, showRomanization: !s.showRomanization }))}
+              />
+            </div>
+          </div>
+
+          <div className="setting-group">
+            <div className="setting-toggle">
+              <span>Audio Enabled</span>
+              <div 
+                className={`toggle-switch ${settings.audioEnabled ? 'active' : ''}`}
+                onClick={() => setSettings(s => ({ ...s, audioEnabled: !s.audioEnabled }))}
+              />
+            </div>
+          </div>
+
+          <div className="setting-group danger">
+            <label className="setting-label">Danger Zone</label>
+            <button 
+              className="danger-btn" 
+              onClick={() => {
+                if (confirm('Reset all progress?')) {
+                  setStats(defaultStats);
+                  localStorage.removeItem(STATS_KEY);
+                }
+              }}
+            >
+              Reset All Progress
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback
   return (
     <div className="app">
-      {view === 'home' && renderHome()}
-      {view === 'flashcards' && renderFlashcards()}
-      {view === 'flashcard-results' && renderFlashcardResults()}
-      {view === 'quiz' && renderQuiz()}
-      {view === 'quiz-results' && renderQuizResults()}
-      {view === 'sentence-builder' && renderSentenceBuilder()}
-      {view === 'listening' && renderListening()}
-      {view === 'levels' && renderLevels()}
-      {view === 'achievements' && renderAchievements()}
-      {view === 'stats' && renderStats()}
-      {view === 'settings' && renderSettings()}
-      {view === 'grammar' && renderGrammar()}
-
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`toast toast-${toast.type} animate-slide-up`} style={{
-          position: 'fixed',
-          bottom: 24,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          padding: '12px 24px',
-          background: toast.type === 'achievement' ? 'var(--gradient-primary)' : 'var(--bg-card)',
-          borderRadius: 'var(--radius-md)',
-          color: 'white',
-          fontWeight: 600,
-          zIndex: 1000,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-        }}>
-          {toast.message}
-        </div>
-      )}
+      <p style={{ padding: 20 }}>Unknown view: {view}</p>
+      <button className="primary-btn" onClick={() => setView('home')}>Go Home</button>
     </div>
   );
 }
@@ -1550,4 +945,4 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 
-console.log('✅ Korean Fluency Quest: App loaded');
+console.log('✅ Korean Fluency Quest v2.1 loaded');
